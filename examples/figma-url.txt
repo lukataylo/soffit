@@ -1,0 +1,5 @@
+Paste any Figma share URL here to use during the success-criteria walkthrough. Example:
+
+https://www.figma.com/file/XXXXXXXXXXXX/Ember-Retro-v1
+
+Workbench auto-rewrites `https://www.figma.com/file/...` URLs to the `/embed?embed_host=workbench&url=...` form when you drop one into a Web panel, so the plain share URL works directly.

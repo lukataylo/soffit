@@ -1,0 +1,22 @@
+flowchart LR
+    subgraph Client
+        W[Web app] --> WS((WebSocket))
+        W --> API((REST))
+    end
+
+    subgraph EmberService
+        WS --> RT[Realtime gateway]
+        API --> APIG[API gateway]
+        RT --> SB[(Session broker)]
+        APIG --> SVC[Session service]
+        SVC --> DB[(Postgres)]
+        SB --> DB
+        SVC --> EXP[Export worker]
+    end
+
+    subgraph External
+        EXP --> ADO[(Azure DevOps)]
+        EXP --> CLIP[Clipboard / Markdown]
+    end
+
+    SVC -. audit .-> LOG[(Audit log)]

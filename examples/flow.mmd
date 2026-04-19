@@ -1,0 +1,8 @@
+graph TD
+    A[Open spec.md] --> B[Read the PRD]
+    B --> C{Reference a diagram?}
+    C -- yes --> D[Open diagrams/user-flow.mmd in a mermaid panel]
+    C -- no --> E[Keep editing]
+    D --> F[Open figma-url.txt and drop the URL into a web panel]
+    F --> G[Ask Claude for a summary in the chat panel]
+    G --> H[Edit the PRD — preview updates in ~500ms]

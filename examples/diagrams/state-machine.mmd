@@ -1,0 +1,23 @@
+stateDiagram-v2
+    [*] --> planned: create session
+    planned --> live: manager clicks Start
+    live --> voting: manager clicks Move to voting
+    voting --> live: manager clicks Back to live
+    voting --> closed: manager clicks Close
+    live --> closed: manager clicks Close (skip voting)
+    closed --> [*]
+
+    note right of live
+        Item entry allowed.
+        Votes hidden.
+    end note
+
+    note right of voting
+        Item entry locked.
+        Each member: 3 votes / column.
+    end note
+
+    note right of closed
+        Read-only.
+        Export + ADO push available.
+    end note

@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Mermaid</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #fff; font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+  #container { padding: 20px; }
+  #status { padding: 20px; color: #666; font-size: 13px; }
+  .err { color: #b91c1c; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px; }
+  @media (prefers-color-scheme: dark) {
+    html, body { background: #1e1e1e; color: #eee; }
+    #status { color: #aaa; }
+  }
+</style>
+<script src="mermaid.min.js"></script>
+</head>
+<body>
+<div id="status">Waiting for diagram…</div>
+<div id="container"></div>
+<script>
+(function () {
+  function renderSource(source) {
+    var status = document.getElementById('status');
+    if (!window.mermaid) {
+      status.innerHTML = '<div class="err">mermaid.min.js not bundled — diagram cannot render offline.\nRun scripts/vendor-mermaid.sh.</div>';
+      return;
+    }
+    mermaid.initialize({ startOnLoad: false, theme: (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default') });
+    var container = document.getElementById('container');
+    container.innerHTML = '';
+    var div = document.createElement('div');
+    div.className = 'mermaid';
+    div.textContent = source;
+    container.appendChild(div);
+    try {
+      var result = mermaid.run ? mermaid.run({ nodes: [div] }) : null;
+      if (result && typeof result.then === 'function') {
+        result.then(function () { status.style.display = 'none'; }).catch(function (e) {
+          status.innerHTML = '<div class="err">' + String(e) + '</div>';
+        });
+      } else {
+        status.style.display = 'none';
+      }
+    } catch (e) {
+      status.innerHTML = '<div class="err">' + String(e) + '</div>';
+    }
+  }
+
+  window.addEventListener('message', function (ev) {
+    if (ev && ev.data && typeof ev.data.source === 'string') {
+      renderSource(ev.data.source);
+    }
+  });
+})();
+</script>
+</body>
+</html>

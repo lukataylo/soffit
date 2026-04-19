@@ -1,0 +1,19 @@
+flowchart TD
+    A([Manager opens Ember]) --> B[Click New retro]
+    B --> C[Fill form: title, team, starts at]
+    C --> D{Anonymous default?}
+    D -- yes --> E[Session created anon-on]
+    D -- no --> F[Session created anon-off]
+    E --> G[Share URL to team]
+    F --> G
+    G --> H[Team joins live session]
+    H --> I[Members add items in 3 columns]
+    I --> J[Manager switches to voting]
+    J --> K[Members spend 3 votes per column]
+    K --> L[Manager closes session]
+    L --> M{Export path?}
+    M -- markdown --> N[Copy Markdown digest]
+    M -- ADO --> O[Modal: pick area path + assignee]
+    O --> P[Work items created in ADO]
+    N --> Q([Done])
+    P --> Q
