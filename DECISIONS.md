@@ -1,4 +1,4 @@
-# Workbench — implementation decisions
+# Soffit — implementation decisions
 
 This file captures non-obvious tradeoffs made during v0.1. Obvious, brief-driven choices are not listed.
 

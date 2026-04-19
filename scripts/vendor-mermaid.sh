@@ -3,7 +3,7 @@
 # Usage: ./scripts/vendor-mermaid.sh [VERSION]   (default: 10.9.1)
 set -euo pipefail
 VERSION="${1:-10.9.1}"
-DEST="Sources/Workbench/Resources/mermaid.min.js"
+DEST="Sources/Soffit/Resources/mermaid.min.js"
 URL="https://unpkg.com/mermaid@${VERSION}/dist/mermaid.min.js"
 
 echo "Fetching mermaid@${VERSION} from ${URL}"

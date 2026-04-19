@@ -1,6 +1,6 @@
 # Ember — demo workspace
 
-This is a seed workspace for **Ember**, a fictional retro-and-action-tracking tool for engineering teams. It exists to exercise Workbench end-to-end: a PRD, user stories, flow diagrams, a Figma placeholder, and a Claude chat panel all visible at once.
+This is a seed workspace for **Ember**, a fictional retro-and-action-tracking tool for engineering teams. It exists to exercise Soffit end-to-end: a PRD, user stories, flow diagrams, a Figma placeholder, and a Claude chat panel all visible at once.
 
 ## What to look at
 
@@ -19,7 +19,7 @@ This is a seed workspace for **Ember**, a fictional retro-and-action-tracking to
 
 ## Suggested layout
 
-Open a Workbench with four panels tiled as:
+Open a Soffit with four panels tiled as:
 
 - **Top-left** — `prds/ember-retro-v1.md` (editor + preview)
 - **Top-right** — `diagrams/user-flow.mmd` (mermaid panel)
