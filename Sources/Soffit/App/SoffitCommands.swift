@@ -40,12 +40,6 @@ struct SoffitCommands: Commands {
                 services.layout.focusPreviousPane()
             }
             .keyboardShortcut("[", modifiers: [.command])
-
-            Divider()
-
-            Button("Open Brief") {
-                NSWorkspace.shared.open(URL(string: "https://github.com/lukataylo/soffit#readme")!)
-            }
         }
     }
 

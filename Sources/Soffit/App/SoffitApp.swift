@@ -22,6 +22,7 @@ struct SoffitApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
+        AppIcon.install()
         NSApp.activate(ignoringOtherApps: true)
     }
 

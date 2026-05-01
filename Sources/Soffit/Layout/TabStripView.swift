@@ -7,6 +7,9 @@ struct TabStripView: View {
     let onSelectTab: (PanelID) -> Void
     let onCloseTab: (PanelID) -> Void
     let onAddTab: () -> Void
+    let onAddTabFromURL: () -> Void
+    let onAddTerminal: () -> Void
+    let onAddChat: () -> Void
     let onSplitRight: () -> Void
     let onSplitDown: () -> Void
     let onClosePane: () -> Void
@@ -59,13 +62,23 @@ struct TabStripView: View {
     }
 
     private var addTabButton: some View {
-        Image(systemName: "plus")
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(.secondary)
-            .frame(width: 24, height: 24)
-            .contentShape(Rectangle())
-            .onTapGesture { onAddTab() }
-            .help("Add tab (⌘T)")
+        Menu {
+            Button { onAddTab() } label: { Label("Add File…", systemImage: "doc.fill") }
+            Button { onAddTabFromURL() } label: { Label("Add URL or Diagram…", systemImage: "link") }
+            Divider()
+            Button { onAddTerminal() } label: { Label("New Terminal", systemImage: "terminal.fill") }
+            Button { onAddChat() } label: { Label("New Claude Chat", systemImage: "bubble.left.and.bubble.right.fill") }
+        } label: {
+            Image(systemName: "plus")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 24, height: 24)
+                .contentShape(Rectangle())
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Add tab")
     }
 
     private var paneMenu: some View {

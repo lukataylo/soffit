@@ -65,6 +65,7 @@ struct TabPillView: View {
         case "mermaid": return "point.3.filled.connected.trianglepath.dotted"
         case "https", "http", "web": return "globe"
         case "chat": return "bubble.left.and.bubble.right.fill"
+        case "terminal": return "terminal.fill"
         default: return "doc"
         }
     }
@@ -76,6 +77,7 @@ struct TabPillView: View {
         case "mermaid": return Color(red: 0.60, green: 0.40, blue: 0.85)
         case "https", "http", "web": return Color(red: 0.35, green: 0.65, blue: 0.55)
         case "chat": return Color(red: 0.85, green: 0.42, blue: 0.55)
+        case "terminal": return Color(red: 0.45, green: 0.78, blue: 0.62)
         default: return .secondary
         }
     }

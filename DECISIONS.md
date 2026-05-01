@@ -42,9 +42,9 @@ The brief suggested an actor. In practice the FSEventStream callback already run
 
 Readable only by processes running under the same user account, not synced to iCloud (no `kSecAttrSynchronizable` set), and wiped when the user reinstalls macOS. For a local-first PM tool that's the right default. If we later want per-profile keys, switch the `kSecAttrAccount` to a profile identifier.
 
-## 11. No app icon, no Info.plist, no bundle identifier
+## 11. Dock icon rendered programmatically; no Info.plist, no bundle identifier
 
-Running an SPM executable on macOS bypasses the `.app` bundle machinery. That's fine for a source-built reviewer experience (the brief explicitly says no installer/notarisation), but it means no Dock icon beyond the generic terminal icon and no deep-link handling. When the project outgrows this, we'll need either a wrapper `.xcodeproj` or the modern `swiftpm`-generated bundle approach.
+Running an SPM executable on macOS bypasses the `.app` bundle machinery. We could either ship a wrapper `.xcodeproj` with an `.icns` resource or render the icon at runtime. v0.2 takes the runtime path: `AppIcon.install()` (`Sources/Soffit/UI/AppIcon.swift`) draws the brand mark — Soffit-orange rounded rectangle with a 2x2 pane grid — into a 512pt `NSImage` on `applicationDidFinishLaunching` and assigns it to `NSApp.applicationIconImage`. No image asset to manage, the same code path drives any future @1x/@2x rendering, and the icon stays in sync with the in-app brand colour. Code signing/notarisation still need a wrapper bundle later.
 
 ## 12. `claude-opus-4-7` as the default chat model
 

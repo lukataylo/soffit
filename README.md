@@ -33,6 +33,7 @@ On first launch you're asked to pick a workspace folder. The `examples/` directo
 
 - **Pick a workspace folder.** The root opens as a card grid of every file, each card showing a live excerpt.
 - **Click a card** to open the file as a **tab** in the focused pane. Double-click to open in edit mode.
+- **Add a tab** via the `[+]` menu in any tab strip — pick from File, URL/diagram, Terminal, or Claude Chat.
 - **Drag a tab** to move it — compass overlay shows four split directions on the target pane, or drop on the tab strip to merge as a tab.
 - **Split a pane** via `⌘\` (right) or `⌘⇧\` (down), or the pane's `[⋮]` menu.
 - **Resize** any pane by dragging its divider. The invisible `NSSplitView` divider leaves breathing room through the gradient.
@@ -83,7 +84,7 @@ Splits render through `NSSplitViewRepresentable` wrapping a custom `InvisibleSpl
 - Single window, single workspace.
 - `mermaid.min.js` is not checked into the repo; run `scripts/vendor-mermaid.sh` once.
 - Terminal panes are session-bound (a relaunch spawns a fresh shell).
-- No app icon, no code signing, no notarisation — build from source.
+- No code signing, no notarisation — build from source. Dock icon is rendered programmatically at launch.
 
 ## Testing
 

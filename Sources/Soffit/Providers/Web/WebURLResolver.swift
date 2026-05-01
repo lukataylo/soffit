@@ -32,7 +32,7 @@ enum WebURLResolver {
         comps.path = "/embed"
         var items = comps.queryItems ?? []
         items.removeAll { $0.name == "embed_host" || $0.name == "url" }
-        items.append(URLQueryItem(name: "embed_host", value: "workbench"))
+        items.append(URLQueryItem(name: "embed_host", value: "soffit"))
         items.append(URLQueryItem(name: "url", value: url.absoluteString))
         comps.queryItems = items
         return comps.url ?? url

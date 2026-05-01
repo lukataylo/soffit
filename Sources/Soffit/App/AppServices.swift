@@ -24,7 +24,10 @@ final class AppServices: ObservableObject {
         self.layout = LayoutStore(tree: .empty)
 
         registry.register(FileProvider())
-        registry.register(WebProvider())
+        let web = WebProvider()
+        registry.register(web)
+        registry.register(web, forScheme: "http")
+        registry.register(web, forScheme: "https")
         registry.register(MermaidProvider())
         registry.register(FolderProvider())
         registry.register(TerminalProvider())

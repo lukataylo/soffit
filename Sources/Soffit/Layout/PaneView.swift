@@ -5,6 +5,7 @@ struct PaneView: View {
     @EnvironmentObject var services: AppServices
     @State private var showSplitPickerFor: Orientation? = nil
     @State private var showAddPicker = false
+    @State private var showURLPicker = false
     @State private var paneSize: CGSize = .zero
     @State private var isDropTargeted: Bool = false
     @State private var dropDirection: DropDirection? = nil
@@ -24,6 +25,16 @@ struct PaneView: View {
                 showAddPicker = false
                 if let url { openAsTab(url) }
             }
+        }
+        .sheet(isPresented: $showURLPicker) {
+            PanelTypePicker(
+                onChoose: { source, title in
+                    showURLPicker = false
+                    let panel = Panel(source: source, title: title)
+                    services.layout.addTab(panel, toPane: pane.id)
+                },
+                onCancel: { showURLPicker = false }
+            )
         }
         .sheet(isPresented: Binding(
             get: { showSplitPickerFor != nil },
@@ -49,6 +60,12 @@ struct PaneView: View {
                 onSelectTab: { services.layout.setActiveTab(in: pane.id, to: $0) },
                 onCloseTab: { services.layout.closeTab($0) },
                 onAddTab: { showAddPicker = true },
+                onAddTabFromURL: { showURLPicker = true },
+                onAddTerminal: { services.openTerminal(in: services.workspace?.root) },
+                onAddChat: {
+                    let panel = Panel(source: "chat://claude", title: "Claude")
+                    services.layout.addTab(panel, toPane: pane.id)
+                },
                 onSplitRight: { showSplitPickerFor = .horizontal },
                 onSplitDown: { showSplitPickerFor = .vertical },
                 onClosePane: { services.layout.closePane(pane.id) },

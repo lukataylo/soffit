@@ -48,6 +48,10 @@ final class ProviderRegistry: ObservableObject {
         providers[P.scheme] = provider
     }
 
+    func register<P: PanelProvider>(_ provider: P, forScheme scheme: String) {
+        providers[scheme] = provider
+    }
+
     func provider(for panel: Panel) -> (any PanelProvider)? {
         providers[panel.scheme]
     }
