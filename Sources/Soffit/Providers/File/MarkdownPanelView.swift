@@ -62,10 +62,10 @@ struct MarkdownPanelView: View {
         } else {
             switch state.mode {
             case .preview:
-                // Editable, with syntax markers hidden so it reads as formatted
-                // prose while you type. Tables show as raw markdown — switch to
-                // Split mode (or Reading via the rendered pane) to see them.
-                editablePreviewPane
+                // Full markdown rendering via MarkdownUI — tables, code blocks,
+                // task lists, all formatted. Read-only; switch to Edit or Split
+                // to type. The rendered pane handles wiki-links via OpenURLAction.
+                renderedReadOnlyPane
             case .edit:
                 sourceEditorPane
             case .split:
