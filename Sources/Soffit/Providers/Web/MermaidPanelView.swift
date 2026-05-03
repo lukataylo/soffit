@@ -189,8 +189,8 @@ private struct MermaidRenderView: NSViewRepresentable {
         let web = WKWebView(frame: .zero, configuration: cfg)
         web.navigationDelegate = context.coordinator
         web.setValue(false, forKey: "drawsBackground")
-        if let shim = Bundle.module.url(forResource: "mermaid-shim", withExtension: "html")
-            ?? Bundle.module.url(forResource: "mermaid-shim", withExtension: "html", subdirectory: "Resources") {
+        if let shim = SoffitBundle.module.url(forResource: "mermaid-shim", withExtension: "html")
+            ?? SoffitBundle.module.url(forResource: "mermaid-shim", withExtension: "html", subdirectory: "Resources") {
             web.loadFileURL(shim, allowingReadAccessTo: shim.deletingLastPathComponent())
         }
         context.coordinator.web = web

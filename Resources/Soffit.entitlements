@@ -21,14 +21,5 @@
          access to load WebKit's internal resources. Outbound only. -->
     <key>com.apple.security.network.client</key>
     <true/>
-
-    <!-- The auto-update mechanism (Sparkle) needs to fetch the appcast and
-         download new builds. Sandboxed Sparkle uses the Installer XPC and
-         downloader XPC services bundled with the framework. -->
-    <key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
-    <array>
-        <string>com.soffit.app-spks</string>
-        <string>com.soffit.app-spki</string>
-    </array>
 </dict>
 </plist>

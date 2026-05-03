@@ -10,11 +10,12 @@ struct SoffitApp: App {
         WindowGroup("Soffit") {
             RootView()
                 .environmentObject(services)
-                .frame(minWidth: 900, minHeight: 600)
+                .frame(minWidth: 720, minHeight: 460)
                 .onAppear { services.start() }
                 .background(WindowChromeConfigurator())
         }
         .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 1180, height: 760)
         .commands { SoffitCommands(services: services) }
     }
 }

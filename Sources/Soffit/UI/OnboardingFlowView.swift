@@ -23,7 +23,8 @@ struct OnboardingFlowView: View {
             case .workspace:  workspacePick
             }
         }
-        .frame(minWidth: 640, minHeight: 480)
+        .frame(minWidth: 560, minHeight: 420)
+        .background(OnboardingWindowSizer())
     }
 
     // MARK: - Welcome
@@ -63,7 +64,7 @@ struct OnboardingFlowView: View {
             .keyboardShortcut(.defaultAction)
             .padding(.bottom, 40)
         }
-        .padding(40)
+        .padding(28)
     }
 
     private func bullet(_ text: String) -> some View {
@@ -126,7 +127,7 @@ struct OnboardingFlowView: View {
             }
             .padding(.bottom, 40)
         }
-        .padding(40)
+        .padding(28)
     }
 
     // MARK: - Helpers
@@ -162,5 +163,32 @@ struct OnboardingFlowView: View {
 extension UserDefaults {
     var hasCompletedOnboarding: Bool {
         bool(forKey: "soffit.onboardingComplete")
+    }
+}
+
+/// Shrinks the host window to a compact onboarding size on first appearance,
+/// then re-centres it. The workspace UI uses `.defaultSize(1180×760)`; that
+/// initial size feels oversized for a two-screen welcome flow.
+private struct OnboardingWindowSizer: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let v = NSView()
+        DispatchQueue.main.async { resize(v) }
+        return v
+    }
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    private func resize(_ view: NSView) {
+        guard let win = view.window else {
+            // Window not yet attached; retry next runloop tick.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { resize(view) }
+            return
+        }
+        let target = NSSize(width: 640, height: 480)
+        if win.frame.size.width > target.width + 20 || win.frame.size.height > target.height + 20 {
+            var frame = win.frame
+            frame.size = target
+            win.setFrame(frame, display: true, animate: false)
+            win.center()
+        }
     }
 }

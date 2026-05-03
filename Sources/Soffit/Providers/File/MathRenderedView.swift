@@ -32,8 +32,8 @@ struct MathRenderedView: View {
     }
 
     private var mathAssetsAvailable: Bool {
-        Bundle.module.url(forResource: "katex.min", withExtension: "js") != nil
-            && Bundle.module.url(forResource: "marked.min", withExtension: "js") != nil
+        SoffitBundle.module.url(forResource: "katex.min", withExtension: "js") != nil
+            && SoffitBundle.module.url(forResource: "marked.min", withExtension: "js") != nil
     }
 }
 
@@ -45,8 +45,8 @@ private struct MathWebView: NSViewRepresentable {
         let web = WKWebView(frame: .zero, configuration: cfg)
         web.navigationDelegate = context.coordinator
         web.setValue(false, forKey: "drawsBackground")
-        if let shim = Bundle.module.url(forResource: "math-shim", withExtension: "html")
-            ?? Bundle.module.url(forResource: "math-shim", withExtension: "html", subdirectory: "Resources") {
+        if let shim = SoffitBundle.module.url(forResource: "math-shim", withExtension: "html")
+            ?? SoffitBundle.module.url(forResource: "math-shim", withExtension: "html", subdirectory: "Resources") {
             web.loadFileURL(shim, allowingReadAccessTo: shim.deletingLastPathComponent())
         }
         context.coordinator.web = web

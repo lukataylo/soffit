@@ -39,8 +39,8 @@ enum WebURLResolver {
     }
 
     private static func resolveMermaid(url: URL, workspaceRoot: URL?) -> WebLoadSpec {
-        guard let shim = Bundle.module.url(forResource: "mermaid-shim", withExtension: "html", subdirectory: "Resources")
-            ?? Bundle.module.url(forResource: "mermaid-shim", withExtension: "html") else {
+        guard let shim = SoffitBundle.module.url(forResource: "mermaid-shim", withExtension: "html", subdirectory: "Resources")
+            ?? SoffitBundle.module.url(forResource: "mermaid-shim", withExtension: "html") else {
             return .error("mermaid-shim.html missing from bundle")
         }
 
