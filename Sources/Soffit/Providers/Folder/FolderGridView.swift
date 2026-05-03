@@ -3,10 +3,8 @@ import SwiftUI
 struct FolderGridView: View {
     let folderURL: URL?
     let workspaceRoot: URL?
-    @Binding var mode: FolderViewMode
     let onOpen: (FSEntry) -> Void
     let onNavigateFolder: (URL) -> Void
-    let onAddToCanvas: (FSEntry) -> Void
 
     @State private var entries: [FSEntry] = []
     @State private var sort: SortMode = .modified
@@ -60,7 +58,6 @@ struct FolderGridView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                     Spacer()
-                    modePicker
                     sortPicker
                 }
             } else {
@@ -76,22 +73,10 @@ struct FolderGridView: View {
                         .lineLimit(1)
                         .fixedSize()
                     Spacer(minLength: 8)
-                    modePicker
                     sortPicker
                 }
             }
         }
-    }
-
-    private var modePicker: some View {
-        Picker("Mode", selection: $mode) {
-            Label("Grid", systemImage: "square.grid.2x2").tag(FolderViewMode.grid)
-            Label("Canvas", systemImage: "rectangle.3.group").tag(FolderViewMode.canvas)
-        }
-        .pickerStyle(.segmented)
-        .labelsHidden()
-        .frame(width: 130)
-        .fixedSize()
     }
 
     private var sortPicker: some View {
@@ -117,9 +102,6 @@ struct FolderGridView: View {
                     }
                     .contextMenu {
                         Button("Open") { onOpen(entry) }
-                        if !entry.isDirectory {
-                            Button("Add to Canvas") { onAddToCanvas(entry) }
-                        }
                         Divider()
                         Button("Reveal in Finder") {
                             NSWorkspace.shared.activateFileViewerSelecting([entry.url])

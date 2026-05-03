@@ -3,6 +3,7 @@ import SwiftUI
 struct FileTreeView: View {
     @ObservedObject var workspace: WorkspaceStore
     @EnvironmentObject var services: AppServices
+    @EnvironmentObject var session: WindowSession
     @State private var expanded: Set<URL> = []
     @State private var children: [URL: [FSEntry]] = [:]
     @State private var recentExpanded: Bool = false
@@ -75,10 +76,10 @@ struct FileTreeView: View {
             }
             recentSection
             sectionRow(icon: "terminal.fill", label: "New Terminal", tint: Color(red: 0.35, green: 0.65, blue: 0.55)) {
-                services.openTerminal()
+                session.openTerminal()
             }
             sectionRow(icon: "calendar", label: "Today's Daily Note", tint: Color(red: 0.50, green: 0.65, blue: 0.95)) {
-                services.openDailyNote()
+                session.openDailyNote()
             }
             tagsSection
         }
@@ -147,12 +148,12 @@ struct FileTreeView: View {
         .onTapGesture {
             // Open the first matching file as a quick way to dive in.
             if let first = services.index.filesWithTag(tag).first {
-                services.openFile(first.url, mode: .preview)
+                session.openFile(first.url, mode: .preview)
             }
         }
         .contextMenu {
             ForEach(services.index.filesWithTag(tag), id: \.url) { entry in
-                Button(entry.title) { services.openFile(entry.url, mode: .preview) }
+                Button(entry.title) { session.openFile(entry.url, mode: .preview) }
             }
         }
     }
@@ -225,9 +226,9 @@ struct FileTreeView: View {
         .padding(.trailing, 8)
         .padding(.vertical, 3.5)
         .contentShape(Rectangle())
-        .onTapGesture { services.openFile(url, mode: .preview) }
+        .onTapGesture { session.openFile(url, mode: .preview) }
         .contextMenu {
-            Button("Open") { services.openFile(url, mode: .preview) }
+            Button("Open") { session.openFile(url, mode: .preview) }
             Button("Reveal in Finder") {
                 NSWorkspace.shared.activateFileViewerSelecting([url])
             }
@@ -399,11 +400,11 @@ struct FileTreeView: View {
     }
 
     private func openFile(_ url: URL, mode: MarkdownPanelMode = .preview) {
-        services.openFile(url, mode: mode)
+        session.openFile(url, mode: mode)
     }
 
     private func openFolder(_ url: URL) {
-        services.openFolderPanel(url)
+        session.openFolderPanel(url)
     }
 
     private func pickWorkspace() {

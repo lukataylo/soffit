@@ -8,6 +8,7 @@ struct MarkdownPanelView: View {
     let context: PanelContext
 
     @EnvironmentObject var services: AppServices
+    @EnvironmentObject var session: WindowSession
     @StateObject private var model: MarkdownPanelModel
     @ObservedObject private var state: MarkdownActiveState
     @State private var sideOpen: SidePanel = .none
@@ -114,6 +115,8 @@ struct MarkdownPanelView: View {
         return "![](\(path))"
     }
 
+    @Environment(\.colorScheme) private var colorScheme
+
     private var renderedReadOnlyPane: some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -121,7 +124,7 @@ struct MarkdownPanelView: View {
                     fmCard.padding(.horizontal, 28).padding(.top, 22).padding(.bottom, 8)
                 }
                 Markdown(processedSource)
-                    .markdownTheme(.gitHub)
+                    .markdownTheme(soffitMarkdownTheme(dark: colorScheme == .dark))
                     .padding(.horizontal, 28)
                     .padding(.vertical, frontmatterCard == nil ? 22 : 8)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -208,11 +211,11 @@ struct MarkdownPanelView: View {
             .padding(12)
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color.primary.opacity(0.04))
+                    .fill(colorScheme == .dark ? Color.white.opacity(0.05) : Color.black.opacity(0.04))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(Color.primary.opacity(0.08), lineWidth: 0.6)
+                    .stroke(Color.primary.opacity(0.10), lineWidth: 0.6)
             )
         )
     }
@@ -252,7 +255,7 @@ struct MarkdownPanelView: View {
         case .backlinks:
             BacklinksSidePanel(fileURL: fileURL,
                                onClose: { sideOpen = .none },
-                               onOpen: { url in services.openFile(url, mode: .preview) })
+                               onOpen: { url in session.openFile(url, mode: .preview) })
         }
     }
 
@@ -346,7 +349,7 @@ struct MarkdownPanelView: View {
 
     private func openWikilink(_ target: String) {
         if let resolved = services.index.resolve(wikilink: target) {
-            services.openFile(resolved, mode: .preview)
+            session.openFile(resolved, mode: .preview)
             return
         }
         // Unresolved: create a new file in the same folder as the active one.
@@ -357,7 +360,7 @@ struct MarkdownPanelView: View {
             try? "# \(target)\n".write(to: targetURL, atomically: true, encoding: .utf8)
         }
         Task { await services.index.touch(targetURL) }
-        services.openFile(targetURL, mode: .preview)
+        session.openFile(targetURL, mode: .preview)
     }
 
     private func openInlineLink(_ raw: String) {
@@ -377,7 +380,7 @@ struct MarkdownPanelView: View {
             candidate = fileURL.deletingLastPathComponent().appendingPathComponent(path)
         }
         if FileManager.default.fileExists(atPath: candidate.path) {
-            services.openFile(candidate, mode: .preview)
+            session.openFile(candidate, mode: .preview)
         } else if let url = URL(string: raw) {
             NSWorkspace.shared.open(url)
         }

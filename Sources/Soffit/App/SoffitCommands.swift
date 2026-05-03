@@ -1,7 +1,9 @@
+import AppKit
 import SwiftUI
 
 struct SoffitCommands: Commands {
     @ObservedObject var services: AppServices
+    @FocusedObject var session: WindowSession?
 
     var body: some Commands {
         CommandGroup(replacing: .appInfo) {
@@ -14,35 +16,35 @@ struct SoffitCommands: Commands {
         CommandGroup(after: .newItem) {
             Button("Open Workspace…") { pickWorkspace() }
                 .keyboardShortcut("o", modifiers: [.command])
-            Button("New Terminal") { services.openTerminal() }
+            Button("New Terminal") { session?.openTerminal() }
                 .keyboardShortcut("t", modifiers: [.command, .shift])
             Divider()
-            Button("Today's Daily Note") { services.openDailyNote() }
+            Button("Today's Daily Note") { session?.openDailyNote() }
                 .keyboardShortcut("d", modifiers: [.command, .shift])
-            Button("New Sketch") { services.openSketch() }
+            Button("New Sketch") { session?.openSketch() }
         }
 
         CommandGroup(after: .pasteboard) {
             Divider()
             Button("Quick Open…") {
-                services.paletteMode = .fileName
+                session?.paletteMode = .fileName
             }
             .keyboardShortcut("p", modifiers: [.command])
 
             Button("Search in Workspace…") {
-                services.paletteMode = .content
+                session?.paletteMode = .content
             }
             .keyboardShortcut("f", modifiers: [.command, .shift])
 
             Button("Find / Replace in Workspace…") {
-                services.findReplaceVisible = true
+                session?.findReplaceVisible = true
             }
             .keyboardShortcut("f", modifiers: [.command, .option])
         }
 
         CommandMenu("Panes") {
             Button("Close Tab") {
-                services.layout.closeFocusedTab()
+                session?.layout.closeFocusedTab()
             }
             .keyboardShortcut("w", modifiers: [.command])
 
@@ -57,28 +59,28 @@ struct SoffitCommands: Commands {
             Divider()
 
             Button("Focus Next Pane") {
-                services.layout.focusNextPane()
+                session?.layout.focusNextPane()
             }
             .keyboardShortcut("]", modifiers: [.command])
 
             Button("Focus Previous Pane") {
-                services.layout.focusPreviousPane()
+                session?.layout.focusPreviousPane()
             }
             .keyboardShortcut("[", modifiers: [.command])
         }
     }
 
     private func splitFocused(_ direction: Orientation) {
-        guard let paneID = services.layout.focusedPane else { return }
+        guard let session, let paneID = session.layout.focusedPane else { return }
         let panel: Panel
-        if let active = services.layout.tree.pane(paneID)?.activeTab {
+        if let active = session.layout.tree.pane(paneID)?.activeTab {
             panel = Panel(source: active.source, title: active.title)
         } else if let root = services.workspace?.root {
             panel = Panel(source: FolderURL.makeSource(for: root), title: root.lastPathComponent)
         } else {
             return
         }
-        services.layout.splitPane(paneID, direction: direction, newPanel: panel, side: .second)
+        session.layout.splitPane(paneID, direction: direction, newPanel: panel, side: .second)
     }
 
     private func pickWorkspace() {

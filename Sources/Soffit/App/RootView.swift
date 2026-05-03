@@ -3,6 +3,7 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject var services: AppServices
+    @StateObject private var session = WindowSession()
     @State private var sidebarCollapsed: Bool = false
 
     var body: some View {
@@ -26,32 +27,35 @@ struct RootView: View {
                     .transition(.opacity)
             }
 
-            if let mode = services.paletteMode {
+            if let mode = session.paletteMode {
                 paletteOverlay(mode: mode)
             }
 
-            if services.findReplaceVisible {
+            if session.findReplaceVisible {
                 findReplaceOverlay
             }
         }
+        .environmentObject(session)
+        .focusedSceneObject(session)
+        .onAppear { session.bind(to: services) }
         .animation(.easeInOut(duration: 0.15), value: services.needsAPIKey)
         .animation(.easeInOut(duration: 0.15), value: services.needsWorkspace)
         .animation(.easeInOut(duration: 0.22), value: sidebarCollapsed)
-        .animation(.easeOut(duration: 0.12), value: services.paletteMode)
-        .animation(.easeOut(duration: 0.12), value: services.findReplaceVisible)
+        .animation(.easeOut(duration: 0.12), value: session.paletteMode)
+        .animation(.easeOut(duration: 0.12), value: session.findReplaceVisible)
     }
 
     private func paletteOverlay(mode: SearchPaletteMode) -> some View {
         ZStack(alignment: .top) {
             Color.black.opacity(0.18)
                 .ignoresSafeArea()
-                .onTapGesture { services.paletteMode = nil }
+                .onTapGesture { session.paletteMode = nil }
             SearchPalette(mode: mode,
                           onPick: { url in
-                              services.paletteMode = nil
-                              services.openFile(url, mode: .preview)
+                              session.paletteMode = nil
+                              session.openFile(url, mode: .preview)
                           },
-                          onClose: { services.paletteMode = nil })
+                          onClose: { session.paletteMode = nil })
                 .padding(.top, 100)
                 .transition(.move(edge: .top).combined(with: .opacity))
         }
@@ -61,8 +65,8 @@ struct RootView: View {
         ZStack(alignment: .top) {
             Color.black.opacity(0.18)
                 .ignoresSafeArea()
-                .onTapGesture { services.findReplaceVisible = false }
-            FindReplaceSheet(onClose: { services.findReplaceVisible = false })
+                .onTapGesture { session.findReplaceVisible = false }
+            FindReplaceSheet(onClose: { session.findReplaceVisible = false })
                 .padding(.top, 100)
                 .transition(.move(edge: .top).combined(with: .opacity))
         }

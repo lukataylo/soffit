@@ -19,7 +19,7 @@ Tile any folder. Edit. Preview. Sketch. All in one window.
 
 Markdown lives in folders. Folders should live in panes.
 
-Drag a tab. Split it. Drop a file on a canvas. Sticky-note a retro. Edit a PRD beside a mermaid diagram beside a Figma frame beside a terminal running `claude`.
+Drag a tab. Split it. Edit a PRD beside a mermaid diagram beside a Figma frame beside a terminal running `claude`.
 
 No vault. No plugin manager. No syncing service. Your files stay where you put them.
 
@@ -36,18 +36,19 @@ Requires macOS 14. Apple Silicon preferred. Intel will do.
 ## In the box
 
 - **Markdown editor** — Preview, Source, Split. Real GFM rendering. Tables. Code. Lists. The works.
-- **Folder canvases** — drop files anywhere. Drag them around. Sticky notes. Zoom. Pan. Per folder.
+- **Search everything** — `⌘P` jumps to any file. `⌘⇧F` searches every word in the workspace. `[[wiki-links]]` and a tag browser stitch your notes together.
 - **Mermaid diagrams** — render `.mmd` files inline. No internet required.
 - **Web embeds** — Figma frames, localhost dashboards, anything WKWebView loads.
 - **Embedded terminal** — drop into `claude`, `git`, `vim`. Whatever you'd put in iTerm.
 - **Tile anything** — drag any tab onto any pane. A compass picks the side.
-- **It remembers** — quit, reopen. Panes, tabs, modes, canvas positions: exactly where you left them.
+- **It remembers** — quit, reopen. Panes, tabs, modes: exactly where you left them.
+- **Multi-window** — `⌘N` for a new window. Each one has its own panes; one workspace, one index, no conflict.
 
 ## Docs
 
 The [wiki](https://github.com/lukataylo/soffit/wiki) has the rest:
 
-[Quickstart](https://github.com/lukataylo/soffit/wiki/Quickstart) · [Canvas mode](https://github.com/lukataylo/soffit/wiki/Canvas-mode) · [Markdown editing](https://github.com/lukataylo/soffit/wiki/Markdown-editing) · [Keyboard shortcuts](https://github.com/lukataylo/soffit/wiki/Keyboard-shortcuts) · [Providers](https://github.com/lukataylo/soffit/wiki/Providers) · [Persistence](https://github.com/lukataylo/soffit/wiki/Persistence) · [Architecture](https://github.com/lukataylo/soffit/wiki/Architecture) · [FAQ](https://github.com/lukataylo/soffit/wiki/FAQ)
+[Quickstart](https://github.com/lukataylo/soffit/wiki/Quickstart) · [Markdown editing](https://github.com/lukataylo/soffit/wiki/Markdown-editing) · [Search and navigation](https://github.com/lukataylo/soffit/wiki/Search-and-navigation) · [Keyboard shortcuts](https://github.com/lukataylo/soffit/wiki/Keyboard-shortcuts) · [Providers](https://github.com/lukataylo/soffit/wiki/Providers) · [Persistence](https://github.com/lukataylo/soffit/wiki/Persistence) · [Architecture](https://github.com/lukataylo/soffit/wiki/Architecture) · [FAQ](https://github.com/lukataylo/soffit/wiki/FAQ)
 
 Implementation tradeoffs and decisions live in [`DECISIONS.md`](DECISIONS.md).
 

@@ -2,14 +2,15 @@ import SwiftUI
 
 struct LayoutHostView: View {
     @EnvironmentObject var services: AppServices
+    @EnvironmentObject var session: WindowSession
 
     var body: some View {
         Group {
-            switch services.layout.tree {
+            switch session.layout.tree {
             case .empty:
                 EmptyStateView()
             default:
-                LayoutTreeView(node: services.layout.tree)
+                LayoutTreeView(node: session.layout.tree)
             }
         }
     }
@@ -17,6 +18,7 @@ struct LayoutHostView: View {
 
 private struct EmptyStateView: View {
     @EnvironmentObject var services: AppServices
+    @EnvironmentObject var session: WindowSession
 
     var body: some View {
         ZStack {
@@ -30,7 +32,7 @@ private struct EmptyStateView: View {
                     .foregroundStyle(.secondary)
                 if let ws = services.workspace {
                     Button {
-                        services.openFolderPanel(ws.root)
+                        session.openFolderPanel(ws.root)
                     } label: {
                         Label("Open \(ws.root.lastPathComponent)", systemImage: "house.fill")
                             .padding(.horizontal, 12)
@@ -68,16 +70,21 @@ private struct SplitHost: View {
     let second: LayoutTree
 
     @EnvironmentObject var services: AppServices
+    @EnvironmentObject var session: WindowSession
 
     var body: some View {
         NSSplitViewRepresentable(
             orientation: orientation,
             ratio: ratio,
             onRatioChange: { newRatio in
-                services.layout.setRatio(for: splitID, to: newRatio)
+                session.layout.setRatio(for: splitID, to: newRatio)
             },
-            first: { LayoutTreeView(node: first).environmentObject(services) },
-            second: { LayoutTreeView(node: second).environmentObject(services) }
+            first: { LayoutTreeView(node: first)
+                .environmentObject(services)
+                .environmentObject(session) },
+            second: { LayoutTreeView(node: second)
+                .environmentObject(services)
+                .environmentObject(session) }
         )
     }
 }

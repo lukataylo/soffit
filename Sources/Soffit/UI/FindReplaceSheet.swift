@@ -6,6 +6,7 @@ struct FindReplaceSheet: View {
     let onClose: () -> Void
 
     @EnvironmentObject var services: AppServices
+    @EnvironmentObject var session: WindowSession
     @State private var find: String = ""
     @State private var replace: String = ""
     @State private var caseSensitive: Bool = false
@@ -84,7 +85,7 @@ struct FindReplaceSheet: View {
                         .padding(.vertical, 6)
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            services.openFile(hit.url, mode: .edit)
+                            session.openFile(hit.url, mode: .edit)
                             onClose()
                         }
                     }

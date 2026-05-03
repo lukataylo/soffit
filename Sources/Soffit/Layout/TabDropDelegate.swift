@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 /// split directions — center-merge is handled by a separate drop target on the tab strip.
 struct TabDropDelegate: DropDelegate {
     let paneID: PaneID
-    let services: AppServices
+    let session: WindowSession
     let paneSizeProvider: () -> CGSize
     let tabBarInset: CGFloat
     @Binding var isTargeted: Bool
@@ -46,7 +46,7 @@ struct TabDropDelegate: DropDelegate {
             guard let str = obj as? String, let uuid = UUID(uuidString: str) else { return }
             let panelID = PanelID(uuid)
             Task { @MainActor in
-                services.layout.splitPaneByMoving(panelID, into: target, direction: direction)
+                session.layout.splitPaneByMoving(panelID, into: target, direction: direction)
             }
         }
         reset()

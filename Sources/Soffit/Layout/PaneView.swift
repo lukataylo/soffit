@@ -3,6 +3,7 @@ import SwiftUI
 struct PaneView: View {
     let pane: Pane
     @EnvironmentObject var services: AppServices
+    @EnvironmentObject var session: WindowSession
     @State private var showSplitPickerFor: Orientation? = nil
     @State private var showAddPicker = false
     @State private var showURLPicker = false
@@ -10,7 +11,7 @@ struct PaneView: View {
     @State private var isDropTargeted: Bool = false
     @State private var dropDirection: DropDirection? = nil
 
-    private var isFocused: Bool { services.layout.focusedPane == pane.id }
+    private var isFocused: Bool { session.layout.focusedPane == pane.id }
     private let tabStripHeight: CGFloat = 36
 
     var body: some View {
@@ -35,7 +36,7 @@ struct PaneView: View {
                 onChoose: { source, title in
                     showURLPicker = false
                     let panel = Panel(source: source, title: title)
-                    services.layout.addTab(panel, toPane: pane.id)
+                    session.layout.addTab(panel, toPane: pane.id)
                 },
                 onCancel: { showURLPicker = false }
             )
@@ -61,16 +62,16 @@ struct PaneView: View {
             TabStripView(
                 pane: pane,
                 isFocused: isFocused,
-                onSelectTab: { services.layout.setActiveTab(in: pane.id, to: $0) },
-                onCloseTab: { services.layout.closeTab($0) },
+                onSelectTab: { session.layout.setActiveTab(in: pane.id, to: $0) },
+                onCloseTab: { session.layout.closeTab($0) },
                 onAddTab: { showAddPicker = true },
                 onAddTabFromURL: { showURLPicker = true },
-                onAddTerminal: { services.openTerminal(in: services.workspace?.root) },
+                onAddTerminal: { session.openTerminal(in: services.workspace?.root) },
                 onSplitRight: { showSplitPickerFor = .horizontal },
                 onSplitDown: { showSplitPickerFor = .vertical },
-                onClosePane: { services.layout.closePane(pane.id) },
+                onClosePane: { session.layout.closePane(pane.id) },
                 onTabDropOnBar: { panelID in
-                    services.layout.moveTabToPane(panelID, targetPaneID: pane.id)
+                    session.layout.moveTabToPane(panelID, targetPaneID: pane.id)
                 }
             )
             .frame(height: tabStripHeight)
@@ -114,7 +115,7 @@ struct PaneView: View {
         .shadow(color: .black.opacity(0.06), radius: 1, x: 0, y: 1)
         .onDrop(of: [.text], delegate: TabDropDelegate(
             paneID: pane.id,
-            services: services,
+            session: session,
             paneSizeProvider: { paneSize },
             tabBarInset: tabStripHeight,
             isTargeted: $isDropTargeted,
@@ -137,7 +138,7 @@ struct PaneView: View {
         if let provider = services.registry.provider(for: panel) {
             provider.makeView(
                 for: PanelSource(url: panel.url, panelID: panel.id),
-                context: services.panelContext()
+                context: session.panelContext()
             )
         } else {
             UnknownPanelView(source: panel.source)
@@ -170,11 +171,11 @@ struct PaneView: View {
     }
 
     private func openAsTab(_ url: URL) {
-        services.openFile(url, mode: .preview)
+        session.openFile(url, mode: .preview)
     }
 
     private func splitWith(_ url: URL, direction: Orientation) {
-        services.splitPaneWithFile(pane.id, direction: direction, url: url)
+        session.splitPaneWithFile(pane.id, direction: direction, url: url)
     }
 }
 
