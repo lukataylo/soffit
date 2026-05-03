@@ -6,21 +6,27 @@ struct RootView: View {
     @StateObject private var session = WindowSession()
     @State private var sidebarCollapsed: Bool = false
 
+    @State private var onboardingDone: Bool = UserDefaults.standard.hasCompletedOnboarding
+
     var body: some View {
         ZStack(alignment: .top) {
             SoffitSurface()
                 .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                titleBar
+            if !onboardingDone && services.workspace == nil {
+                OnboardingFlowView(onFinish: { onboardingDone = true })
+            } else {
+                VStack(spacing: 0) {
+                    titleBar
 
-                if services.needsWorkspace {
-                    WorkspacePickerView()
-                } else {
-                    WorkspaceLayout(sidebarCollapsed: $sidebarCollapsed)
+                    if services.needsWorkspace {
+                        WorkspacePickerView()
+                    } else {
+                        WorkspaceLayout(sidebarCollapsed: $sidebarCollapsed)
+                    }
                 }
+                .ignoresSafeArea()
             }
-            .ignoresSafeArea()
 
             if services.needsAPIKey {
                 OnboardingView()
@@ -158,6 +164,19 @@ private struct SidebarResizeHandle: View {
                         SidebarWidth.save(width)
                     }
             )
+            .accessibilityElement()
+            .accessibilityLabel("Sidebar width")
+            .accessibilityValue("\(Int(width)) points")
+            .accessibilityHint("Drag to resize sidebar")
+            .accessibilityAdjustableAction { direction in
+                let step: CGFloat = 20
+                switch direction {
+                case .increment: width = min(maxWidth, width + step)
+                case .decrement: width = max(minWidth, width - step)
+                @unknown default: break
+                }
+                SidebarWidth.save(width)
+            }
     }
 }
 
@@ -182,5 +201,7 @@ private struct SidebarToggleButton: View {
         .buttonStyle(.plain)
         .onHover { isHovered = $0 }
         .help(collapsed ? "Show sidebar" : "Hide sidebar")
+        .accessibilityLabel(collapsed ? "Show sidebar" : "Hide sidebar")
+        .keyboardShortcut("s", modifiers: [.command, .control])
     }
 }

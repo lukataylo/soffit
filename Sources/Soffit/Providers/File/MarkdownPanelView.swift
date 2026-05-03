@@ -424,17 +424,26 @@ final class MarkdownPanelModel: ObservableObject {
     func load() {
         guard !loaded else { return }
         loaded = true
-        if let data = try? Data(contentsOf: fileURL), let s = String(data: data, encoding: .utf8) {
-            text = s
-        }
-        debounce = $text
-            .dropFirst()
-            .handleEvents(receiveOutput: { [weak self] _ in self?.dirty = true })
-            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
-            .sink { [weak self] value in
-                self?.write(value)
-                self?.dirty = false
+        let url = fileURL
+        Task { [weak self] in
+            // For iCloud Drive placeholder files, request a download and wait
+            // before reading. For ordinary files this is an immediate no-op.
+            await CloudFile.materialise(url)
+            let s: String? = (try? Data(contentsOf: url))
+                .flatMap { String(data: $0, encoding: .utf8) }
+            await MainActor.run {
+                guard let self else { return }
+                if let s { self.text = s }
+                self.debounce = self.$text
+                    .dropFirst()
+                    .handleEvents(receiveOutput: { [weak self] _ in self?.dirty = true })
+                    .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
+                    .sink { [weak self] value in
+                        self?.write(value)
+                        self?.dirty = false
+                    }
             }
+        }
     }
 
     func flush() {

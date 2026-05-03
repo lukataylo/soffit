@@ -9,15 +9,14 @@ struct SoffitCommands: Commands {
         CommandGroup(replacing: .appInfo) {
             Button("About Soffit") { AboutWindowController.show() }
             Button("Check for Updates…") {
-                NSWorkspace.shared.open(URL(string: "https://github.com/lukataylo/soffit/releases/latest")!)
+                UpdaterController.shared.checkForUpdates()
             }
+            .disabled(!UpdaterController.shared.canCheckForUpdates)
         }
 
         CommandGroup(after: .newItem) {
             Button("Open Workspace…") { pickWorkspace() }
                 .keyboardShortcut("o", modifiers: [.command])
-            Button("New Terminal") { session?.openTerminal() }
-                .keyboardShortcut("t", modifiers: [.command, .shift])
             Divider()
             Button("Today's Daily Note") { session?.openDailyNote() }
                 .keyboardShortcut("d", modifiers: [.command, .shift])

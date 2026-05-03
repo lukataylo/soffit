@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Sandbox required for App Store distribution. -->
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+
+    <!-- Read/write the user-selected workspace folder. The bookmark plumbing
+         in WorkspaceBookmark.swift re-resolves the folder on each launch and
+         calls startAccessingSecurityScopedResource so reads/writes succeed. -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+
+    <!-- Persist access to the workspace folder across launches via security-
+         scoped bookmarks. -->
+    <key>com.apple.security.files.bookmarks.app-scope</key>
+    <true/>
+
+    <!-- WKWebView panels (mermaid diagrams, math rendering) need network
+         access to load WebKit's internal resources. Outbound only. -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+
+    <!-- The auto-update mechanism (Sparkle) needs to fetch the appcast and
+         download new builds. Sandboxed Sparkle uses the Installer XPC and
+         downloader XPC services bundled with the framework. -->
+    <key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
+    <array>
+        <string>com.soffit.app-spks</string>
+        <string>com.soffit.app-spki</string>
+    </array>
+</dict>
+</plist>

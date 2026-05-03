@@ -109,12 +109,6 @@ final class WindowSession: ObservableObject {
         layout.addTab(panel)
     }
 
-    func openTerminal(in folder: URL? = nil) {
-        let dir = folder ?? services?.workspace?.root ?? FileManager.default.homeDirectoryForCurrentUser
-        let panel = Panel(source: TerminalSource.makeSource(for: dir), title: "Terminal")
-        layout.addTab(panel)
-    }
-
     func openDailyNote() {
         guard let root = services?.workspace?.root else { return }
         let formatter = DateFormatter()

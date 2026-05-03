@@ -8,7 +8,6 @@ struct TabStripView: View {
     let onCloseTab: (PanelID) -> Void
     let onAddTab: () -> Void
     let onAddTabFromURL: () -> Void
-    let onAddTerminal: () -> Void
     let onSplitRight: () -> Void
     let onSplitDown: () -> Void
     let onClosePane: () -> Void
@@ -65,7 +64,6 @@ struct TabStripView: View {
             Button { onAddTab() } label: { Label("Add File…", systemImage: "doc.fill") }
             Button { onAddTabFromURL() } label: { Label("Add URL or Diagram…", systemImage: "link") }
             Divider()
-            Button { onAddTerminal() } label: { Label("New Terminal", systemImage: "terminal.fill") }
         } label: {
             Image(systemName: "plus")
                 .font(.system(size: 11, weight: .semibold))

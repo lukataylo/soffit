@@ -1,0 +1,30 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     version="2.0">
+<channel>
+  <title>Soffit</title>
+  <link>https://github.com/lukataylo/soffit</link>
+  <description>Soffit auto-update feed</description>
+  <language>en</language>
+
+  <!-- Each release is one <item>. Generate via:
+         ./scripts/sparkle-sign-and-publish.sh build/Soffit-0.4.0.dmg 0.4.0
+       and insert the resulting block here. Then publish this file at the
+       URL declared in Info.plist's SUFeedURL (e.g., GitHub Pages). -->
+
+  <item>
+    <title>Soffit 0.3.0</title>
+    <pubDate>Sun, 03 May 2026 12:00:00 +0000</pubDate>
+    <sparkle:version>0.3.0</sparkle:version>
+    <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
+    <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+    <enclosure
+        url="https://github.com/lukataylo/soffit/releases/download/v0.3.0/Soffit-0.3.0.dmg"
+        length="0"
+        type="application/octet-stream"
+        sparkle:edSignature="" />
+  </item>
+
+</channel>
+</rss>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Soffit collects no user data. Required key per Apple's privacy
+         manifest spec. -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
+
+    <!-- Soffit doesn't track users. -->
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <!-- No tracking domains. -->
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+
+    <!-- Required-reason API declarations. Soffit uses the following Apple
+         APIs for the listed legitimate reasons. Each category includes the
+         specific NSPrivacyAccessedAPIType reason codes Apple expects. -->
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <!-- File modification dates: shown in the recent-files list, used to
+             sort the folder grid by "Recent". Reason C617.1 is "Display file
+             timestamps to the user." -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>C617.1</string>
+            </array>
+        </dict>
+
+        <!-- UserDefaults: persisting preferences (sidebar width, theme, spell
+             check, recent files, workspace bookmark). Reason CA92.1 is
+             "Access info from same app, per documentation." -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>CA92.1</string>
+            </array>
+        </dict>
+
+        <!-- System boot time: not directly used by Soffit; declared because
+             SwiftUI / AppKit may probe this internally for UI behaviour.
+             Reason 35F9.1 is "Measure time elapsed between app events that
+             happen only while the app is in the foreground." -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategorySystemBootTime</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>35F9.1</string>
+            </array>
+        </dict>
+
+        <!-- Disk space: not used directly; common-API category often required
+             when bundling certain frameworks. -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryDiskSpace</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>E174.1</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>

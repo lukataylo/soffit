@@ -66,7 +66,6 @@ struct PaneView: View {
                 onCloseTab: { session.layout.closeTab($0) },
                 onAddTab: { showAddPicker = true },
                 onAddTabFromURL: { showURLPicker = true },
-                onAddTerminal: { session.openTerminal(in: services.workspace?.root) },
                 onSplitRight: { showSplitPickerFor = .horizontal },
                 onSplitDown: { showSplitPickerFor = .vertical },
                 onClosePane: { session.layout.closePane(pane.id) },

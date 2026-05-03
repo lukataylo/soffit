@@ -9,14 +9,14 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/gonzalezreal/swift-markdown-ui", from: "2.4.0"),
-        .package(url: "https://github.com/migueldeicaza/SwiftTerm", from: "1.2.0")
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0")
     ],
     targets: [
         .executableTarget(
             name: "Soffit",
             dependencies: [
                 .product(name: "MarkdownUI", package: "swift-markdown-ui"),
-                .product(name: "SwiftTerm", package: "SwiftTerm")
+                .product(name: "Sparkle", package: "Sparkle")
             ],
             resources: [
                 .copy("Resources")

@@ -1,0 +1,150 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "About Soffit" : {
+      "comment" : "Menu item: opens the About window"
+    },
+    "All Documents" : {
+      "comment" : "Sidebar shortcut: open the workspace root as a folder pane"
+    },
+    "Backlinks" : {
+      "comment" : "Markdown panel side-panel header: list of files that link to this one"
+    },
+    "Cancel" : {
+      "comment" : "Generic cancel button"
+    },
+    "Canvas" : {
+      "comment" : "Folder mode picker option (legacy — canvas mode removed in v0.5)"
+    },
+    "Check for Updates…" : {
+      "comment" : "Menu item under the app menu"
+    },
+    "Clear" : {
+      "comment" : "Recent files clear button"
+    },
+    "Close Pane" : {
+      "comment" : "Pane menu: remove this pane from the layout tree"
+    },
+    "Close Tab" : {
+      "comment" : "Pane menu: close the active tab"
+    },
+    "File" : {
+      "comment" : "Folder grid table header"
+    },
+    "Find / Replace in Workspace…" : {
+      "comment" : "Menu item: opens the workspace find/replace sheet"
+    },
+    "Find in workspace" : {
+      "comment" : "Find/replace sheet placeholder"
+    },
+    "Focus Next Pane" : {
+      "comment" : "Menu item under Panes"
+    },
+    "Focus Previous Pane" : {
+      "comment" : "Menu item under Panes"
+    },
+    "Folder" : {
+      "comment" : "Folder grid header fallback when folder URL is missing"
+    },
+    "Grid" : {
+      "comment" : "Folder mode picker option"
+    },
+    "Hide sidebar" : {
+      "comment" : "Sidebar toggle tooltip when sidebar is shown"
+    },
+    "Jump to file…" : {
+      "comment" : "Quick palette placeholder (filename mode)"
+    },
+    "New Sketch" : {
+      "comment" : "Menu item: opens a fresh sketch panel"
+    },
+    "New Window" : {
+      "comment" : "Menu item: opens a new window of the same workspace"
+    },
+    "No headings yet" : {
+      "comment" : "Outline panel empty state"
+    },
+    "No matching files" : {
+      "comment" : "File picker empty state"
+    },
+    "No panes open" : {
+      "comment" : "Empty layout state"
+    },
+    "No recent files yet" : {
+      "comment" : "Recent sidebar empty state"
+    },
+    "No tags yet" : {
+      "comment" : "Tags sidebar empty state"
+    },
+    "Open" : {
+      "comment" : "Generic open verb"
+    },
+    "Open Workspace…" : {
+      "comment" : "Menu item: NSOpenPanel for workspace folder"
+    },
+    "Open in Editor Mode" : {
+      "comment" : "File context menu: open in Split mode for editing"
+    },
+    "Outline" : {
+      "comment" : "Markdown panel side-panel header"
+    },
+    "Panes" : {
+      "comment" : "Top-level menu name"
+    },
+    "Preview" : {
+      "comment" : "Markdown panel mode label"
+    },
+    "Quick Open…" : {
+      "comment" : "Menu item: opens the quick palette"
+    },
+    "Recent" : {
+      "comment" : "Sort mode label, also sidebar section header"
+    },
+    "Replace All" : {
+      "comment" : "Find/replace sheet primary action"
+    },
+    "Replace with (optional)" : {
+      "comment" : "Find/replace sheet placeholder"
+    },
+    "Report an Issue" : {
+      "comment" : "About window button"
+    },
+    "Repository" : {
+      "comment" : "About window button: open the GitHub repo"
+    },
+    "Reveal in Finder" : {
+      "comment" : "Context menu item"
+    },
+    "Search in Workspace…" : {
+      "comment" : "Menu item: opens the full-text search palette"
+    },
+    "Show sidebar" : {
+      "comment" : "Sidebar toggle tooltip when sidebar is hidden"
+    },
+    "Source" : {
+      "comment" : "Markdown panel mode label"
+    },
+    "Spell check" : {
+      "comment" : "Markdown panel status bar tooltip"
+    },
+    "Split" : {
+      "comment" : "Markdown panel mode label"
+    },
+    "Split Down" : {
+      "comment" : "Pane menu / commands menu item"
+    },
+    "Split Right" : {
+      "comment" : "Pane menu / commands menu item"
+    },
+    "Tags" : {
+      "comment" : "Sidebar section header"
+    },
+    "Today's Daily Note" : {
+      "comment" : "Menu item: opens daily/YYYY-MM-DD.md"
+    },
+    "What is" : {
+      "comment" : "Folder grid table header column"
+    }
+  },
+  "version" : "1.0"
+}

@@ -36,27 +36,37 @@ final class AppServices: ObservableObject {
         registry.register(web, forScheme: "https")
         registry.register(MermaidProvider())
         registry.register(FolderProvider())
-        registry.register(TerminalProvider())
         registry.register(ChatProvider(keychain: keychain))
         registry.register(SketchProvider())
 
-        // Eagerly load the workspace from the persisted snapshot. This must
-        // happen before WindowSession.bind() runs (which fires from RootView's
-        // onAppear) so the bind can restore the layout against a live workspace.
-        let snapshot = persistence.load()
-        if let rootPath = snapshot?.workspaceRoot,
-           FileManager.default.fileExists(atPath: rootPath) {
-            openWorkspace(at: URL(fileURLWithPath: rootPath))
+        // Eagerly resolve the workspace. Under the App Sandbox we use a
+        // security-scoped bookmark; outside the sandbox we fall back to the
+        // legacy path stored in layout.json. Either way, this must run before
+        // WindowSession.bind() (called from RootView.onAppear) so the bind
+        // restores against a live workspace.
+        if let bookmarked = WorkspaceBookmark.resolve() {
+            _ = bookmarked.startAccessingSecurityScopedResource()
+            openWorkspace(at: bookmarked)
+        } else if let snapshot = persistence.load(),
+                  !snapshot.workspaceRoot.isEmpty,
+                  FileManager.default.fileExists(atPath: snapshot.workspaceRoot) {
+            openWorkspace(at: URL(fileURLWithPath: snapshot.workspaceRoot))
         } else {
             needsWorkspace = true
         }
     }
+
+    // Note: we deliberately don't pair startAccessingSecurityScopedResource
+    // with stopAccessingSecurityScopedResource — AppServices lives for the
+    // app's lifetime, so the OS reclaims the access when the process exits.
 
     /// Kept as a no-op for SoffitApp's onAppear (call site preserved). All
     /// real startup work happens in init now.
     func start() {}
 
     func openWorkspace(at url: URL) {
+        // Persist a sandbox-friendly bookmark for cross-launch access.
+        WorkspaceBookmark.store(url)
         let store = WorkspaceStore(root: url)
         workspace = store
         needsWorkspace = false

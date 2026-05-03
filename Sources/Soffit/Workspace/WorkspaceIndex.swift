@@ -184,6 +184,10 @@ final class WorkspaceIndex: ObservableObject {
     // MARK: - Index a single file (off main)
 
     private nonisolated static func indexOne(url: URL) async -> IndexedFile? {
+        // Skip iCloud Drive placeholders — reading them would yield zero bytes
+        // and pollute the index. The user can trigger a download by opening the
+        // file; the FSEvents-driven refresh re-indexes it then.
+        guard CloudFile.isReadable(url) else { return nil }
         guard let data = try? Data(contentsOf: url),
               let source = String(data: data, encoding: .utf8) else { return nil }
         let parsed = MarkdownParser.parse(source)

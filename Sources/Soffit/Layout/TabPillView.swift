@@ -15,6 +15,7 @@ struct TabPillView: View {
                 Image(systemName: iconName)
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(tint)
+                    .accessibilityHidden(true)
                 Text(tab.title.isEmpty ? tab.source : tab.title)
                     .font(.system(size: 12, weight: isActive ? .semibold : .medium))
                     .foregroundStyle(isActive ? Color.primary : Color.secondary)
@@ -30,18 +31,26 @@ struct TabPillView: View {
             .onDrag {
                 NSItemProvider(object: tab.id.raw.uuidString as NSString)
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(tab.title.isEmpty ? tab.source : tab.title))
+            .accessibilityHint(Text("Double-click to activate"))
+            .accessibilityAddTraits(isActive ? [.isSelected, .isButton] : .isButton)
 
-            Image(systemName: "xmark")
-                .font(.system(size: 9, weight: .bold))
-                .foregroundStyle(closeHovered ? Color.primary : Color.secondary.opacity(0.55))
-                .frame(width: 16, height: 16)
-                .background(
-                    Circle().fill(closeHovered ? Color.primary.opacity(0.1) : Color.clear)
-                )
-                .padding(.trailing, 6)
-                .contentShape(Rectangle())
-                .onHover { closeHovered = $0 }
-                .onTapGesture { onClose() }
+            Button(action: onClose) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(closeHovered ? Color.primary : Color.secondary.opacity(0.55))
+                    .frame(width: 16, height: 16)
+                    .background(
+                        Circle().fill(closeHovered ? Color.primary.opacity(0.1) : Color.clear)
+                    )
+                    .padding(.trailing, 6)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .onHover { closeHovered = $0 }
+            .accessibilityLabel("Close tab")
+            .help("Close tab")
         }
         .background(pillBackground)
         .overlay(
@@ -65,7 +74,6 @@ struct TabPillView: View {
         case "mermaid": return "point.3.filled.connected.trianglepath.dotted"
         case "https", "http", "web": return "globe"
         case "chat": return "bubble.left.and.bubble.right.fill"
-        case "terminal": return "terminal.fill"
         case "sketch": return "pencil.and.scribble"
         default: return "doc"
         }
@@ -78,7 +86,6 @@ struct TabPillView: View {
         case "mermaid": return Color(red: 0.60, green: 0.40, blue: 0.85)
         case "https", "http", "web": return Color(red: 0.35, green: 0.65, blue: 0.55)
         case "chat": return Color(red: 0.85, green: 0.42, blue: 0.55)
-        case "terminal": return Color(red: 0.45, green: 0.78, blue: 0.62)
         case "sketch": return Color(red: 0.92, green: 0.55, blue: 0.45)
         default: return .secondary
         }

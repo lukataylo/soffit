@@ -22,8 +22,11 @@ struct AboutView: View {
                 .lineLimit(nil)
 
             HStack(spacing: 18) {
-                Button("Open Repository") {
+                Button("Repository") {
                     NSWorkspace.shared.open(URL(string: "https://github.com/lukataylo/soffit")!)
+                }
+                Button("Privacy Policy") {
+                    NSWorkspace.shared.open(URL(string: "https://github.com/lukataylo/soffit/blob/main/PRIVACY.md")!)
                 }
                 Button("Report an Issue") {
                     NSWorkspace.shared.open(URL(string: "https://github.com/lukataylo/soffit/issues/new")!)
