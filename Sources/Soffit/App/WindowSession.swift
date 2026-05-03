@@ -138,6 +138,54 @@ final class WindowSession: ObservableObject {
         layout.addTab(panel)
     }
 
+    #if SOFFIT_PRO
+    /// Pro build only: open an embedded terminal pane rooted in the workspace.
+    /// Not available in App Store / Free builds — Apple rejects subprocess
+    /// execution under the App Sandbox.
+    func openTerminal(in folder: URL? = nil) {
+        let dir = folder ?? services?.workspace?.root ?? FileManager.default.homeDirectoryForCurrentUser
+        let panel = Panel(source: TerminalSource.makeSource(for: dir), title: "Terminal")
+        layout.addTab(panel)
+    }
+    #endif
+
+    /// Create a new markdown file in the active folder pane (or the workspace
+    /// root if no folder pane is focused), then open it. Names like
+    /// "Untitled.md", "Untitled 2.md" etc. — collision-safe.
+    func newMarkdownFileInWorkspace() {
+        let folder = activeFolderURL() ?? services?.workspace?.root
+        guard let folder else { return }
+        createNewFile(in: folder)
+    }
+
+    /// Create a new markdown file in `folder`. Used by the folder grid's "+"
+    /// button as well as the menu / keyboard shortcut.
+    func createNewFile(in folder: URL) {
+        let url = nextAvailableURL(in: folder, base: "Untitled", ext: "md")
+        let body = "# \(url.deletingPathExtension().lastPathComponent)\n\n"
+        try? body.write(to: url, atomically: true, encoding: .utf8)
+        Task { await services?.index.touch(url) }
+        openFile(url, mode: .split)
+    }
+
+    private func activeFolderURL() -> URL? {
+        guard let pane = layout.focusedPane.flatMap({ layout.tree.pane($0) }),
+              let active = pane.activeTab,
+              active.scheme == "folder" else { return nil }
+        return FolderURL.folder(from: PanelSource(url: active.url, panelID: active.id))
+    }
+
+    private func nextAvailableURL(in folder: URL, base: String, ext: String) -> URL {
+        let fm = FileManager.default
+        var candidate = folder.appendingPathComponent("\(base).\(ext)")
+        var counter = 2
+        while fm.fileExists(atPath: candidate.path) {
+            candidate = folder.appendingPathComponent("\(base) \(counter).\(ext)")
+            counter += 1
+        }
+        return candidate
+    }
+
     func splitPaneWithFile(_ paneID: PaneID, direction: Orientation, url: URL) {
         guard let services else { return }
         let panel: Panel

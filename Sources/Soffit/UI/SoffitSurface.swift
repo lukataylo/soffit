@@ -18,7 +18,7 @@ struct SoffitSurface: View {
 struct WindowBlurBackground: NSViewRepresentable {
     func makeNSView(context: Context) -> NSVisualEffectView {
         let v = NSVisualEffectView()
-        v.material = .hudWindow
+        v.material = .popover
         v.blendingMode = .behindWindow
         v.state = .followsWindowActiveState
         v.isEmphasized = false

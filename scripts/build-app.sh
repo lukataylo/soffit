@@ -7,6 +7,10 @@
 set -euo pipefail
 
 CONFIG="${1:-release}"
+# SOFFIT_VARIANT controls which build to produce:
+#   appstore (default) → sandboxed, no terminal, App Store-ready.
+#   pro                → embedded terminal, Sparkle auto-update, sold via DMG.
+VARIANT="${SOFFIT_VARIANT:-appstore}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="${ROOT}/build"
 APP="${BUILD_DIR}/Soffit.app"
@@ -18,9 +22,19 @@ BUNDLE_SRC="${ROOT}/.build/${CONFIG}/Soffit_Soffit.bundle"
 VERSION="0.3.0"
 BUILD_NUM="$(date +%Y%m%d%H%M)"
 
+echo "→ building Soffit (variant=${VARIANT}, config=${CONFIG})"
+
+# Compile with the right SOFFIT_PRO define for the variant.
+if [[ "${VARIANT}" == "pro" ]]; then
+  DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}" \
+    swift build -c "${CONFIG}" -Xswiftc -DSOFFIT_PRO >/dev/null
+else
+  DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}" \
+    swift build -c "${CONFIG}" >/dev/null
+fi
+
 if [[ ! -x "${BIN_SRC}" ]]; then
-  echo "Executable not found at ${BIN_SRC}." >&2
-  echo "Run: DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift build -c ${CONFIG}" >&2
+  echo "Executable not found at ${BIN_SRC} after build." >&2
   exit 1
 fi
 
@@ -52,8 +66,10 @@ fi
 
 # Carry the SPM resource bundle so Bundle.module continues to find mermaid-shim,
 # mermaid.min.js, etc. SPM places it next to the executable as Soffit_Soffit.bundle.
+# `ditto --noextattr --noqtn` so we don't carry FinderInfo/quarantine xattrs
+# across — codesign rejects bundles that have them.
 if [[ -d "${BUNDLE_SRC}" ]]; then
-  cp -R "${BUNDLE_SRC}" "${APP}/Contents/Resources/"
+  ditto --noextattr --noqtn "${BUNDLE_SRC}" "${APP}/Contents/Resources/$(basename "${BUNDLE_SRC}")"
 fi
 
 # Embed Sparkle.framework. Sparkle is a binary framework (XCFramework) and
@@ -61,8 +77,12 @@ fi
 SPARKLE_SRC=$(find "${ROOT}/.build" -path '*/release/Sparkle.framework' -type d | head -1)
 if [[ -n "${SPARKLE_SRC}" && -d "${SPARKLE_SRC}" ]]; then
   mkdir -p "${APP}/Contents/Frameworks"
-  cp -R "${SPARKLE_SRC}" "${APP}/Contents/Frameworks/"
+  ditto --noextattr --noqtn "${SPARKLE_SRC}" "${APP}/Contents/Frameworks/Sparkle.framework"
 fi
+
+# Strip macOS xattrs that codesign rejects ("resource fork, Finder information,
+# or similar detritus not allowed"). Vendored binaries sometimes carry these.
+xattr -cr "${APP}" 2>/dev/null || true
 
 cat > "${APP}/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -99,20 +119,41 @@ cat > "${APP}/Contents/Info.plist" <<EOF
 </plist>
 EOF
 
-# Ad-hoc sign with the App Sandbox entitlements so the app behaves the same
-# locally as it will in production. NOT notarized — the user will still see
-# the "downloaded from internet" warning if they distribute it; that step
-# requires an Apple Developer ID and `notarytool submit`.
-ENTITLEMENTS="${ROOT}/Resources/Soffit.entitlements"
+# Pick entitlements per variant. The Pro build doesn't apply the App Sandbox
+# (we need to exec /bin/bash for the terminal), so we use a minimal set with
+# hardened runtime + JIT/library exceptions. The App Store build uses the
+# full sandbox.
+if [[ "${VARIANT}" == "pro" ]]; then
+  ENTITLEMENTS="${ROOT}/Resources/Soffit-Pro.entitlements"
+else
+  ENTITLEMENTS="${ROOT}/Resources/Soffit.entitlements"
+fi
+
+# Final xattr cleanup. macOS auto-stamps bundle dirs with FinderInfo and
+# fileprovider attrs which codesign rejects ("resource fork, Finder
+# information, or similar detritus not allowed"). The kernel will
+# *re-add* these the moment we touch the bundle, so we have to clear and
+# codesign back-to-back in the same shell pipeline.
+find "${APP}" -name '._*' -delete 2>/dev/null || true
+find "${APP}" -name '.DS_Store' -delete 2>/dev/null || true
+xattr -cr "${APP}" 2>/dev/null || true
+
+# `--deep` walks nested bundles (Sparkle.framework, Soffit_Soffit.bundle)
+# bottom-up so the outer signature seals them. Without it, a sandboxed
+# bundle ends up linker-signed and `Sealed Resources=none`, which fails
+# App Store submission. The `xattr -c "${APP}" &&` chain strips FinderInfo
+# off the outer .app immediately before codesign reads it.
 if [[ -f "${ENTITLEMENTS}" ]]; then
-  codesign --force \
+  xattr -c "${APP}" 2>/dev/null
+  codesign --force --deep \
            --sign - \
            --timestamp=none \
            --entitlements "${ENTITLEMENTS}" \
            --options runtime \
            "${APP}" 2>&1 | sed 's/^/  codesign: /' || true
 else
-  codesign --force --sign - --timestamp=none "${APP}" 2>&1 | sed 's/^/  codesign: /' || true
+  xattr -c "${APP}" 2>/dev/null
+  codesign --force --deep --sign - --timestamp=none "${APP}" 2>&1 | sed 's/^/  codesign: /' || true
 fi
 
 echo

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussion
+    url: https://github.com/lukataylo/soffit/discussions
+    about: For "how do I" or "what if" questions, prefer Discussions over Issues.
+  - name: Wiki
+    url: https://github.com/lukataylo/soffit/wiki
+    about: Quickstart, keyboard shortcuts, architecture. Often answers the question.

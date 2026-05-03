@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & publish
+    runs-on: macos-14
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Resolve version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF##*/}"          # v0.4.0
+          VERSION="${TAG#v}"               # 0.4.0
+          echo "tag=${TAG}"      >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Vendor mermaid + katex
+        run: |
+          ./scripts/vendor-mermaid.sh
+          ./scripts/vendor-katex.sh
+
+      - name: Generate icon
+        run: swift scripts/generate-icon.swift
+
+      - name: Build App Store variant
+        env:
+          # Real Sparkle key + appcast URL would go here in repository
+          # secrets. Without them, the App Store build silently disables
+          # auto-update via UpdaterController's gating.
+          SU_PUBLIC_ED_KEY: ${{ secrets.SU_PUBLIC_ED_KEY }}
+          SU_FEED_URL: ${{ secrets.SU_FEED_URL }}
+        run: |
+          SOFFIT_VARIANT=appstore ./scripts/build-app.sh release
+          mv build/Soffit.app build/Soffit-AppStore.app
+
+      - name: Build Pro variant
+        env:
+          SU_PUBLIC_ED_KEY: ${{ secrets.SU_PUBLIC_ED_KEY }}
+          SU_FEED_URL: ${{ secrets.SU_FEED_URL }}
+        run: |
+          SOFFIT_VARIANT=pro ./scripts/build-app.sh release
+          mv build/Soffit.app build/Soffit-Pro.app
+
+      - name: Package DMGs
+        run: |
+          # App Store variant — re-stage the .app at build/Soffit.app for the
+          # DMG script to pick up.
+          rm -rf build/dmg-stage
+          mv build/Soffit-AppStore.app build/Soffit.app
+          ./scripts/build-dmg.sh
+          mv "build/Soffit-${{ steps.version.outputs.version }}.dmg" \
+             "build/Soffit-${{ steps.version.outputs.version }}-AppStore.dmg"
+
+          mv build/Soffit.app build/Soffit-AppStore.app
+          mv build/Soffit-Pro.app build/Soffit.app
+          ./scripts/build-dmg.sh
+          mv "build/Soffit-${{ steps.version.outputs.version }}.dmg" \
+             "build/Soffit-${{ steps.version.outputs.version }}-Pro.dmg"
+
+      - name: Verify DMGs mount
+        run: |
+          for dmg in build/*.dmg; do
+            hdiutil verify "$dmg"
+          done
+
+      - name: Generate release notes from CHANGELOG
+        id: notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          # Pull the section between this version's heading and the next one.
+          if grep -q "^## \[${VERSION}\]" CHANGELOG.md; then
+            awk -v ver="${VERSION}" '
+              $0 ~ "^## \\[" ver "\\]" { capture=1; next }
+              capture && /^## \[/ { exit }
+              capture { print }
+            ' CHANGELOG.md > release-notes.md
+          else
+            echo "Release ${VERSION}." > release-notes.md
+          fi
+          cat release-notes.md
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Soffit ${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.tag, '-') }}
+          files: |
+            build/Soffit-${{ steps.version.outputs.version }}-AppStore.dmg
+            build/Soffit-${{ steps.version.outputs.version }}-Pro.dmg

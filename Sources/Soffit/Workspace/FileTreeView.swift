@@ -75,6 +75,11 @@ struct FileTreeView: View {
                 openFolder(workspace.root)
             }
             recentSection
+            #if SOFFIT_PRO
+            sectionRow(icon: "terminal.fill", label: "New Terminal", tint: Color(red: 0.35, green: 0.65, blue: 0.55)) {
+                session.openTerminal()
+            }
+            #endif
             sectionRow(icon: "calendar", label: "Today's Daily Note", tint: Color(red: 0.50, green: 0.65, blue: 0.95)) {
                 session.openDailyNote()
             }

@@ -14,6 +14,6 @@ struct MermaidProvider: PanelProvider {
     static let displayName = "Mermaid"
 
     func makeView(for source: PanelSource, context: PanelContext) -> AnyView {
-        AnyView(WebPanelView(source: source, context: context))
+        AnyView(MermaidPanelView(source: source, context: context))
     }
 }

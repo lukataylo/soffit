@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Pro build: hardened runtime but NOT sandboxed. Sandboxing forbids
+         arbitrary subprocess execution, which is what the embedded terminal
+         needs (/bin/bash + login shells). Distributed via Developer ID +
+         notarization; never goes to the App Store. -->
+
+    <!-- Required so Sparkle can launch its installer XPC services. -->
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+
+    <!-- Sparkle uses Apple events to relaunch the app post-update. -->
+    <key>com.apple.security.automation.apple-events</key>
+    <true/>
+</dict>
+</plist>

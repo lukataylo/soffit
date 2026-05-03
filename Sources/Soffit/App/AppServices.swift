@@ -38,6 +38,9 @@ final class AppServices: ObservableObject {
         registry.register(FolderProvider())
         registry.register(ChatProvider(keychain: keychain))
         registry.register(SketchProvider())
+        #if SOFFIT_PRO
+        registry.register(TerminalProvider())
+        #endif
 
         // Eagerly resolve the workspace. Under the App Sandbox we use a
         // security-scoped bookmark; outside the sandbox we fall back to the

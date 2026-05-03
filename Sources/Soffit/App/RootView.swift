@@ -83,9 +83,14 @@ struct RootView: View {
             .frame(height: 28)
             .overlay(alignment: .leading) {
                 if services.workspace != nil {
-                    SidebarToggleButton(collapsed: $sidebarCollapsed)
-                        .padding(.leading, 84)
-                        .padding(.top, 6)
+                    HStack(spacing: 8) {
+                        SidebarToggleButton(collapsed: $sidebarCollapsed)
+                        SearchToolbarButton {
+                            session.paletteMode = .fileName
+                        }
+                    }
+                    .padding(.leading, 84)
+                    .padding(.top, 6)
                 }
             }
     }
@@ -177,6 +182,30 @@ private struct SidebarResizeHandle: View {
                 }
                 SidebarWidth.save(width)
             }
+    }
+}
+
+private struct SearchToolbarButton: View {
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(isHovered ? Color.primary : Color.secondary)
+                .frame(width: 26, height: 22)
+                .background(
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(isHovered ? Color.primary.opacity(0.08) : Color.clear)
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+        .help("Quick Open (⌘P)")
+        .accessibilityLabel("Quick Open")
+        .keyboardShortcut("p", modifiers: [.command])
     }
 }
 

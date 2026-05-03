@@ -1,0 +1,43 @@
+name: Feature request
+description: Suggest a new capability or behaviour
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Soffit is intentionally narrow. Before requesting, scan the
+        [closed issues](https://github.com/lukataylo/soffit/issues?q=is%3Aissue) —
+        we may have already considered (and declined) something similar.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's the problem?
+      description: Describe the workflow or pain point. The "what" — not yet the "how".
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How might Soffit help? Links to similar features in other apps welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+      description: Workarounds, other apps, etc.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Which variant should this ship in?
+      options:
+        - Both
+        - App Store / Free only
+        - Pro only
+    validations:
+      required: true

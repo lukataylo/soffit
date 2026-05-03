@@ -19,7 +19,8 @@ struct FolderPanelView: View {
             folderURL: folderURL,
             workspaceRoot: services.workspace?.root,
             onOpen: openEntry,
-            onNavigateFolder: navigateFolder
+            onNavigateFolder: navigateFolder,
+            onCreateNewFile: { folder in session.createNewFile(in: folder) }
         )
         .background(Color(nsColor: .textBackgroundColor))
     }

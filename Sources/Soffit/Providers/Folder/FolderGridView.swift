@@ -5,6 +5,7 @@ struct FolderGridView: View {
     let workspaceRoot: URL?
     let onOpen: (FSEntry) -> Void
     let onNavigateFolder: (URL) -> Void
+    let onCreateNewFile: (URL) -> Void
 
     @State private var entries: [FSEntry] = []
     @State private var sort: SortMode = .modified
@@ -58,6 +59,7 @@ struct FolderGridView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                     Spacer()
+                    newFileButton
                     sortPicker
                 }
             } else {
@@ -73,10 +75,27 @@ struct FolderGridView: View {
                         .lineLimit(1)
                         .fixedSize()
                     Spacer(minLength: 8)
+                    newFileButton
                     sortPicker
                 }
             }
         }
+    }
+
+    private var newFileButton: some View {
+        Button {
+            if let folder = folderURL { onCreateNewFile(folder) }
+        } label: {
+            Label("New File", systemImage: "doc.badge.plus")
+                .font(.system(size: 11, weight: .medium))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+        .help("New markdown file in this folder")
+        .accessibilityLabel("Create new markdown file in this folder")
+        .keyboardShortcut("n", modifiers: [.command])
     }
 
     private var sortPicker: some View {

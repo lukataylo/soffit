@@ -1,0 +1,72 @@
+name: Bug report
+description: Something isn't working
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file this. Reproducible bugs with
+        clear repro steps are a gift to maintainers — please be specific.
+
+  - type: input
+    id: version
+    attributes:
+      label: Soffit version
+      description: Soffit → About Soffit shows it. Or "main, commit XYZ" if running from source.
+      placeholder: 0.4.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: variant
+    attributes:
+      label: Variant
+      options:
+        - App Store / Free
+        - Pro (DMG download)
+        - From source
+    validations:
+      required: true
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: 14.5
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Numbered list. Be exact.
+      placeholder: |
+        1. Open a workspace folder containing a `.md` file
+        2. Click the file in the sidebar
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console logs (optional)
+      description: |
+        If the app crashed or printed errors: open Console.app, filter by
+        "Soffit", reproduce, then paste the relevant lines here.
+      render: text

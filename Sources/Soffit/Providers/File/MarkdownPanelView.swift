@@ -62,7 +62,10 @@ struct MarkdownPanelView: View {
         } else {
             switch state.mode {
             case .preview:
-                renderedReadOnlyPane
+                // Editable, with syntax markers hidden so it reads as formatted
+                // prose while you type. Tables show as raw markdown — switch to
+                // Split mode (or Reading via the rendered pane) to see them.
+                editablePreviewPane
             case .edit:
                 sourceEditorPane
             case .split:
@@ -81,6 +84,20 @@ struct MarkdownPanelView: View {
         MarkdownSourceEditor(text: $model.text,
                              commands: state.commands,
                              style: .mono,
+                             onClickRequestOpen: handleEditorOpen,
+                             onPasteImage: handlePastedImage,
+                             spellCheckEnabled: state.spellCheckEnabled,
+                             expandSnippet: { services.snippets.expand($0) })
+            .background(Color(nsColor: .textBackgroundColor))
+    }
+
+    /// Editable Preview: same NSTextView, but `.rendered` style hides syntax
+    /// markers (** , *, # ) so the document reads as formatted prose while
+    /// the caret still works for typing.
+    private var editablePreviewPane: some View {
+        MarkdownSourceEditor(text: $model.text,
+                             commands: state.commands,
+                             style: .rendered,
                              onClickRequestOpen: handleEditorOpen,
                              onPasteImage: handlePastedImage,
                              spellCheckEnabled: state.spellCheckEnabled,

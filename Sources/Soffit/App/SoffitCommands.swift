@@ -8,19 +8,27 @@ struct SoffitCommands: Commands {
     var body: some Commands {
         CommandGroup(replacing: .appInfo) {
             Button("About Soffit") { AboutWindowController.show() }
-            Button("Check for Updates…") {
-                UpdaterController.shared.checkForUpdates()
+            if UpdaterController.shared.isConfigured {
+                Button("Check for Updates…") {
+                    UpdaterController.shared.checkForUpdates()
+                }
+                .disabled(!UpdaterController.shared.canCheckForUpdates)
             }
-            .disabled(!UpdaterController.shared.canCheckForUpdates)
         }
 
         CommandGroup(after: .newItem) {
+            Button("New Markdown File") { session?.newMarkdownFileInWorkspace() }
+                .keyboardShortcut("n", modifiers: [.command])
             Button("Open Workspace…") { pickWorkspace() }
                 .keyboardShortcut("o", modifiers: [.command])
             Divider()
             Button("Today's Daily Note") { session?.openDailyNote() }
                 .keyboardShortcut("d", modifiers: [.command, .shift])
             Button("New Sketch") { session?.openSketch() }
+            #if SOFFIT_PRO
+            Button("New Terminal") { session?.openTerminal() }
+                .keyboardShortcut("t", modifiers: [.command, .shift])
+            #endif
         }
 
         CommandGroup(after: .pasteboard) {
