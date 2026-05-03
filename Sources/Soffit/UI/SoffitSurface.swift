@@ -8,25 +8,17 @@ struct SoffitSurface: View {
     @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        ZStack {
-            WindowBlurBackground()
-            tintOverlay
-        }
-    }
-
-    private var tintOverlay: some View {
-        // Light tint, low opacity so the wallpaper blur shows through but cards
-        // still pop. Dark mode keeps a touch more weight so cards don't lose contrast.
-        colorScheme == .dark
-            ? Color(white: 0.10).opacity(0.30)
-            : Color(white: 0.96).opacity(0.25)
+        // Just the visual-effect view, no tint. Preview.app, Notes, Mail and
+        // friends all use the system .sidebar material straight — adding a
+        // tint on top is what made Soffit look denser than its peers.
+        WindowBlurBackground()
     }
 }
 
 struct WindowBlurBackground: NSViewRepresentable {
     func makeNSView(context: Context) -> NSVisualEffectView {
         let v = NSVisualEffectView()
-        v.material = .headerView
+        v.material = .sidebar
         v.blendingMode = .behindWindow
         v.state = .followsWindowActiveState
         v.isEmphasized = false
@@ -34,7 +26,7 @@ struct WindowBlurBackground: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-        nsView.material = .headerView
+        nsView.material = .sidebar
         nsView.blendingMode = .behindWindow
         nsView.state = .followsWindowActiveState
     }
