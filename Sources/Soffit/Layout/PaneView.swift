@@ -15,11 +15,11 @@ struct PaneView: View {
 
     var body: some View {
         unifiedCard
-            // 10pt of breathing room: shadow radius is 8pt, and the surrounding
-            // NSHostingController clips at its bounds — anything less and the
-            // outer drop shadow gets truncated where a pane meets the window
-            // edge or sidebar.
-            .padding(10)
+            // 5pt gutter on each side → 10pt total between adjacent panes.
+            // Shadow radius matches the padding so the outer drop shadow stops
+            // exactly at the NSHostingController boundary — visible everywhere,
+            // never clipped at the window edge.
+            .padding(5)
         .sheet(isPresented: $showAddPicker) {
             FilePickerSheet(
                 title: "Add tab",
@@ -110,7 +110,7 @@ struct PaneView: View {
             }
         }
         .animation(.easeOut(duration: 0.12), value: isDropTargeted)
-        .shadow(color: .black.opacity(0.14), radius: 8, x: 0, y: 2)
+        .shadow(color: .black.opacity(0.14), radius: 5, x: 0, y: 2)
         .shadow(color: .black.opacity(0.06), radius: 1, x: 0, y: 1)
         .onDrop(of: [.text], delegate: TabDropDelegate(
             paneID: pane.id,
