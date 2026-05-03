@@ -33,16 +33,12 @@ struct RootView: View {
 
     private var titleBar: some View {
         TitleBarDragRegion()
-            // 40pt gives the sidebar toggle room to sit below the traffic-light
-            // row instead of crowding it. macOS positions the traffic lights at
-            // a fixed vertical offset; centering our button in a taller bar drops
-            // it to roughly toolbar height.
-            .frame(height: 40)
-            .overlay(alignment: .bottomLeading) {
+            .frame(height: 28)
+            .overlay(alignment: .leading) {
                 if services.workspace != nil {
                     SidebarToggleButton(collapsed: $sidebarCollapsed)
                         .padding(.leading, 84)
-                        .padding(.bottom, 6)
+                        .padding(.top, 6)
                 }
             }
     }
