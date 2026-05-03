@@ -4,7 +4,7 @@ A native macOS workspace for markdown power users. Tile any folder as a freeform
 
 Built for the post-Obsidian crowd: local-first, file-on-disk, no plugins, no cloud, no lock-in. Just markdown and panes.
 
-This is v0.3. See `DECISIONS.md` for the non-obvious tradeoffs.
+This is v0.3. See `DECISIONS.md` for the non-obvious tradeoffs and [`docs/`](docs/) for usage guides ([Quickstart](docs/Quickstart.md), [Canvas mode](docs/Canvas-mode.md), [Keyboard shortcuts](docs/Keyboard-shortcuts.md), [Architecture](docs/Architecture.md)).
 
 ## Requirements
 
