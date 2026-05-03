@@ -20,7 +20,7 @@ final class WorkspaceStore: ObservableObject {
         entries = Self.readDirectory(root)
     }
 
-    static func readDirectory(_ url: URL) -> [FSEntry] {
+    nonisolated static func readDirectory(_ url: URL) -> [FSEntry] {
         let fm = FileManager.default
         let keys: [URLResourceKey] = [.isDirectoryKey, .nameKey]
         guard let items = try? fm.contentsOfDirectory(at: url, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles]) else {

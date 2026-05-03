@@ -189,26 +189,36 @@ struct DocumentCard: View {
     }
 
     private func loadPreview() {
+        let entry = self.entry
+        Task.detached(priority: .userInitiated) {
+            let result = Self.computePreview(entry)
+            await MainActor.run { self.preview = result }
+        }
+    }
+
+    nonisolated private static func computePreview(_ entry: FSEntry) -> CardPreview {
         if entry.isDirectory {
             let items = WorkspaceStore.readDirectory(entry.url)
                 .map { FolderItem(name: $0.name, isDirectory: $0.isDirectory) }
-            preview = .folder(items)
-            return
+            return .folder(items)
         }
         let ext = entry.url.pathExtension.lowercased()
         if ["md", "markdown", "mdx"].contains(ext) {
             if let content = try? String(contentsOf: entry.url, encoding: .utf8) {
-                preview = .markdown(String(content.prefix(600)))
-            } else { preview = .empty }
-        } else if ext == "mmd" {
-            if let content = try? String(contentsOf: entry.url, encoding: .utf8) {
-                preview = .mermaid(String(content.prefix(400)))
-            } else { preview = .empty }
-        } else if let content = try? String(contentsOf: entry.url, encoding: .utf8) {
-            preview = .plain(String(content.prefix(300)))
-        } else {
-            preview = .empty
+                return .markdown(String(content.prefix(600)))
+            }
+            return .empty
         }
+        if ext == "mmd" {
+            if let content = try? String(contentsOf: entry.url, encoding: .utf8) {
+                return .mermaid(String(content.prefix(400)))
+            }
+            return .empty
+        }
+        if let content = try? String(contentsOf: entry.url, encoding: .utf8) {
+            return .plain(String(content.prefix(300)))
+        }
+        return .empty
     }
 
     struct FolderItem: Hashable {

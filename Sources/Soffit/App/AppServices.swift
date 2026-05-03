@@ -12,8 +12,10 @@ final class AppServices: ObservableObject {
     let keychain: KeychainStore
     let persistence: LayoutPersistence
     let notifications = PanelNotificationBus()
+    let recents = RecentFilesStore()
 
     private var cancellables: Set<AnyCancellable> = []
+    private var trackedPanelIDs: Set<PanelID> = []
 
     init() {
         let keychain = KeychainStore(service: "com.soffit.app")
@@ -63,6 +65,23 @@ final class AppServices: ObservableObject {
                 self.persistence.save(.init(workspaceRoot: ws.root.path, tree: tree))
             }
             .store(in: &cancellables)
+
+        // Release per-panel registries (canvas, markdown, initial-state) when a panel
+        // leaves the tree. Without this, every closed folder/markdown pane would hold
+        // its store forever in shared registries.
+        trackedPanelIDs = Set(layout.tree.panelIDs)
+        layout.$tree
+            .sink { [weak self] tree in
+                guard let self else { return }
+                let current = Set(tree.panelIDs)
+                for id in self.trackedPanelIDs.subtracting(current) {
+                    CanvasStateRegistry.shared.cleanup(id)
+                    MarkdownStateRegistry.shared.cleanup(id)
+                    InitialStateHolder.shared.write(id, nil)
+                }
+                self.trackedPanelIDs = current
+            }
+            .store(in: &cancellables)
     }
 
     func openWorkspace(at url: URL) {
@@ -85,6 +104,7 @@ final class AppServices: ObservableObject {
     func openFile(_ url: URL, mode: MarkdownPanelMode = .preview) {
         let panel = makeFilePanel(url: url, mode: mode)
         layout.addTab(panel)
+        recents.record(url)
     }
 
     func openFolderPanel(_ url: URL) {

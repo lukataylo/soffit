@@ -1,6 +1,49 @@
 # Soffit — implementation decisions
 
-This file captures non-obvious tradeoffs made during v0.1. Obvious, brief-driven choices are not listed.
+This file captures non-obvious tradeoffs made during development. Obvious, brief-driven choices are not listed.
+
+## v0.3 additions
+
+### v0.3.1 Incremental markdown highlighting via `NSTextStorageDelegate`
+
+Initial implementation re-scanned the entire `NSTextStorage` with seven regexes on every keystroke. For PRD-sized files (1k–10k lines) this caused noticeable input lag. v0.3 keeps the same regex set but scopes re-scan to ~5 lines around the editor's `editedRange`, falling back to a full re-scan only when the scope contains a code-fence marker (where partial-scope styling would mis-pair). The `MarkdownHighlighter.applyIncremental(to:style:editedRange:)` API is independent of the editor so the same logic could later drive a tree-sitter swap.
+
+### v0.3.2 Canvas state persistence: split immediate vs. debounced
+
+Canvas mode lets you drag files and sticky notes around, type into notes, pan/zoom. Initially every mutation called `JSONEncoder.encode(state)` + the host save callback, meaning a single drag tick wrote the whole state ~60 times per second. Split into:
+- *Immediate* (`add`, `remove`, sticky-color change, mode toggle) — discrete user actions; persistence latency would be felt as "did my click register?"
+- *Debounced 250ms* (`move`, `setPan`, `setZoom`, sticky-text edit) — high-frequency mutations where in-flight in-memory state is what matters; only the resting state needs to hit disk.
+
+Tests force-flush by following a debounced burst with a discrete op, which calls `persistImmediate` and cancels+re-arms the debounce sink.
+
+### v0.3.3 Panel-state registries get an explicit cleanup hook
+
+`CanvasStateRegistry`, `MarkdownStateRegistry`, and `InitialStateHolder` are global singletons keyed on `PanelID`. Without cleanup, every closed pane leaks its store. v0.3 watches `layout.$tree` and on each emission diffs the previous-vs-current `panelIDs` set; ids that disappeared get removed from all three registries. This sits in `AppServices.start()` so it's owned by the same actor as the layout itself, no new synchronisation needed.
+
+### v0.3.4 Folder cards and file tree do disk I/O off the main thread
+
+Three on-render disk reads were caught and moved to `Task.detached(priority: .userInitiated)` sinks:
+- `FilePreviewCard` markdown/text/image content (cached in `@State`, re-loaded on URL change).
+- `DocumentCard.loadPreview` (markdown/mermaid/plain excerpt).
+- `FileTreeView` expanded subdirectory listings (cached per-URL, invalidated on FSEvents).
+
+This required marking `WorkspaceStore.readDirectory(_:)` as `nonisolated` since the helper does pure file I/O with no actor-isolated state.
+
+### v0.3.5 .app bundling without a wrapper Xcode project
+
+The original brief said "no installer/notarisation"; the SPM executable ran fine but had no Dock icon and no proper bundle. v0.3 adds a `scripts/build-app.sh` post-build step that:
+1. Copies `.build/release/Soffit` into `build/Soffit.app/Contents/MacOS/`.
+2. Copies the SPM `Soffit_Soffit.bundle` into `Resources/` so `Bundle.module` keeps finding `mermaid-shim.html`.
+3. Generates an `Info.plist` with `LSMinimumSystemVersion=14.0`, `NSPrincipalClass=NSApplication`, version metadata.
+4. Ad-hoc signs the app (`codesign --sign -`) so first-run quarantine is less aggressive.
+
+Pre-built distribution still requires an Apple Developer cert + notarisation, which is intentionally out of scope.
+
+### v0.3.6 App icon is generated, not authored
+
+`scripts/generate-icon.swift` renders the icon programmatically — gradient squircle with the 2x2 grid mark — at all 10 macOS-required sizes, then `iconutil` compiles to `.icns`. This means the icon is reproducible from source: no Sketch/Figma asset checked in, and the gradient/grid can be tweaked by editing the Swift script. Trade-off: the result is technically correct but lacks the hand-tuned details a designer-authored icon would have. Good enough for v0.3; revisit when a designer is engaged.
+
+## v0.1 / v0.2 baseline (kept for context)
 
 ## 1. Swift Package instead of a hand-rolled .xcodeproj
 

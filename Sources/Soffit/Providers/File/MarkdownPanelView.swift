@@ -41,7 +41,7 @@ struct MarkdownPanelView: View {
         } else {
             switch state.mode {
             case .preview:
-                renderedEditorPane
+                renderedReadOnlyPane
             case .edit:
                 sourceEditorPane
             case .split:
@@ -51,11 +51,6 @@ struct MarkdownPanelView: View {
                 }
             }
         }
-    }
-
-    private var renderedEditorPane: some View {
-        MarkdownSourceEditor(text: $model.text, commands: state.commands, style: .rendered)
-            .background(Color(nsColor: .textBackgroundColor))
     }
 
     private var sourceEditorPane: some View {
@@ -97,6 +92,7 @@ final class MarkdownPanelModel: ObservableObject {
 
     private var debounce: AnyCancellable?
     private var loaded = false
+    private var dirty = false
 
     var isMarkdown: Bool {
         let ext = fileURL.pathExtension.lowercased()
@@ -117,16 +113,30 @@ final class MarkdownPanelModel: ObservableObject {
         }
         debounce = $text
             .dropFirst()
+            .handleEvents(receiveOutput: { [weak self] _ in self?.dirty = true })
             .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
-            .sink { [weak self] value in self?.write(value) }
+            .sink { [weak self] value in
+                self?.write(value)
+                self?.dirty = false
+            }
     }
 
     func flush() {
         debounce?.cancel()
+        debounce = nil
+        if dirty {
+            write(text)
+            dirty = false
+        }
     }
 
     private func write(_ value: String) {
         guard isMarkdown else { return }
-        try? value.write(to: fileURL, atomically: true, encoding: .utf8)
+        let url = fileURL
+        // Atomic write off the main thread: a 10k-line markdown file would otherwise
+        // stall typing for tens of milliseconds on every save tick.
+        Task.detached(priority: .utility) {
+            try? value.write(to: url, atomically: true, encoding: .utf8)
+        }
     }
 }

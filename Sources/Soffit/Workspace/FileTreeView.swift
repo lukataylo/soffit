@@ -4,6 +4,8 @@ struct FileTreeView: View {
     @ObservedObject var workspace: WorkspaceStore
     @EnvironmentObject var services: AppServices
     @State private var expanded: Set<URL> = []
+    @State private var children: [URL: [FSEntry]] = [:]
+    @State private var recentExpanded: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -27,6 +29,10 @@ struct FileTreeView: View {
             }
         }
         .frame(maxHeight: .infinity)
+        .onChange(of: workspace.entries) { _, _ in
+            // FSEvents fired — refresh any expanded subdirectory caches.
+            for url in expanded { loadChildren(url) }
+        }
     }
 
     private var workspaceHeader: some View {
@@ -67,19 +73,90 @@ struct FileTreeView: View {
             sectionRow(icon: "square.stack.3d.up.fill", label: "All Documents", tint: Color(red: 0.95, green: 0.55, blue: 0.35)) {
                 openFolder(workspace.root)
             }
-            sectionRow(icon: "clock.fill", label: "Recent", tint: Color(red: 0.38, green: 0.56, blue: 0.92)) {
-                openFolder(workspace.root)
-            }
+            recentSection
             sectionRow(icon: "terminal.fill", label: "New Terminal", tint: Color(red: 0.35, green: 0.65, blue: 0.55)) {
                 services.openTerminal()
-            }
-            sectionRow(icon: "bubble.left.and.bubble.right.fill", label: "New Chat", tint: Color(red: 0.85, green: 0.42, blue: 0.55)) {
-                let panel = Panel(source: "chat://claude", title: "Claude")
-                services.layout.addTab(panel)
             }
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
+    }
+
+    private var recentSection: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            HStack(spacing: 9) {
+                Image(systemName: "clock.fill")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color(red: 0.38, green: 0.56, blue: 0.92))
+                    .frame(width: 18)
+                Text("Recent")
+                    .font(.system(size: 12.5, weight: .medium))
+                    .foregroundStyle(.primary)
+                Spacer()
+                if !services.recents.entries.isEmpty {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.tertiary)
+                        .rotationEffect(.degrees(recentExpanded ? 90 : 0))
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                services.recents.prune()
+                recentExpanded.toggle()
+            }
+
+            if recentExpanded {
+                if services.recents.entries.isEmpty {
+                    Text("No recent files yet")
+                        .font(.system(size: 11.5))
+                        .foregroundStyle(.tertiary)
+                        .padding(.leading, 35)
+                        .padding(.vertical, 4)
+                } else {
+                    ForEach(services.recents.entries, id: \.self) { url in
+                        recentRow(url)
+                    }
+                    HStack {
+                        Spacer()
+                        Button("Clear") { services.recents.clear() }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 10.5))
+                            .foregroundStyle(.tertiary)
+                            .padding(.trailing, 12)
+                            .padding(.top, 2)
+                    }
+                }
+            }
+        }
+    }
+
+    private func recentRow(_ url: URL) -> some View {
+        HStack(spacing: 7) {
+            Image(systemName: iconName(for: url))
+                .font(.system(size: 10.5))
+                .foregroundStyle(tintColor(for: url))
+                .frame(width: 14)
+            Text(url.lastPathComponent)
+                .font(.system(size: 12))
+                .foregroundStyle(.primary.opacity(0.85))
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Spacer()
+        }
+        .padding(.leading, 35)
+        .padding(.trailing, 8)
+        .padding(.vertical, 3.5)
+        .contentShape(Rectangle())
+        .onTapGesture { services.openFile(url, mode: .preview) }
+        .contextMenu {
+            Button("Open") { services.openFile(url, mode: .preview) }
+            Button("Reveal in Finder") {
+                NSWorkspace.shared.activateFileViewerSelecting([url])
+            }
+        }
     }
 
     private func sectionRow(icon: String, label: String, tint: Color, action: @escaping () -> Void) -> some View {
@@ -132,8 +209,8 @@ struct FileTreeView: View {
                     .padding(.trailing, 8)
                     .padding(.vertical, 4)
 
-                    if expanded.contains(entry.url) {
-                        ForEach(WorkspaceStore.readDirectory(entry.url)) { child in
+                    if expanded.contains(entry.url), let kids = children[entry.url] {
+                        ForEach(kids) { child in
                             entryRow(child, depth: depth + 1)
                         }
                     }
@@ -156,6 +233,9 @@ struct FileTreeView: View {
                 .padding(.trailing, 8)
                 .padding(.vertical, 3.5)
                 .contentShape(Rectangle())
+                .onDrag {
+                    NSItemProvider(object: entry.url as NSURL)
+                }
                 .gesture(
                     TapGesture(count: 2)
                         .onEnded { openFile(entry.url, mode: .split) }
@@ -194,7 +274,19 @@ struct FileTreeView: View {
     }
 
     private func toggle(_ url: URL) {
-        if expanded.contains(url) { expanded.remove(url) } else { expanded.insert(url) }
+        if expanded.contains(url) {
+            expanded.remove(url)
+        } else {
+            expanded.insert(url)
+            loadChildren(url)
+        }
+    }
+
+    private func loadChildren(_ url: URL) {
+        Task.detached(priority: .userInitiated) {
+            let kids = WorkspaceStore.readDirectory(url)
+            await MainActor.run { children[url] = kids }
+        }
     }
 
     private func openFile(_ url: URL, mode: MarkdownPanelMode = .preview) {

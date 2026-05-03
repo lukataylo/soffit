@@ -4,15 +4,15 @@ struct SoffitCommands: Commands {
     @ObservedObject var services: AppServices
 
     var body: some Commands {
+        CommandGroup(replacing: .appInfo) {
+            Button("About Soffit") { AboutWindowController.show() }
+        }
+
         CommandGroup(after: .newItem) {
             Button("Open Workspace…") { pickWorkspace() }
                 .keyboardShortcut("o", modifiers: [.command])
             Button("New Terminal") { services.openTerminal() }
                 .keyboardShortcut("t", modifiers: [.command, .shift])
-        }
-
-        CommandGroup(after: .appSettings) {
-            Button("Set Anthropic API Key…") { services.promptForAPIKey() }
         }
 
         CommandMenu("Panes") {

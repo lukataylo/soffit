@@ -62,10 +62,6 @@ struct PaneView: View {
                 onAddTab: { showAddPicker = true },
                 onAddTabFromURL: { showURLPicker = true },
                 onAddTerminal: { services.openTerminal(in: services.workspace?.root) },
-                onAddChat: {
-                    let panel = Panel(source: "chat://claude", title: "Claude")
-                    services.layout.addTab(panel, toPane: pane.id)
-                },
                 onSplitRight: { showSplitPickerFor = .horizontal },
                 onSplitDown: { showSplitPickerFor = .vertical },
                 onClosePane: { services.layout.closePane(pane.id) },
@@ -99,8 +95,7 @@ struct PaneView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(isFocused ? Color.accentColor.opacity(0.32) : Color.primary.opacity(0.05),
-                        lineWidth: isFocused ? 1.2 : 0.6)
+                .stroke(Color.primary.opacity(0.16), lineWidth: 1)
                 .allowsHitTesting(false)
         )
         .overlay {
@@ -111,7 +106,8 @@ struct PaneView: View {
             }
         }
         .animation(.easeOut(duration: 0.12), value: isDropTargeted)
-        .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 2)
+        .shadow(color: .black.opacity(0.14), radius: 8, x: 0, y: 2)
+        .shadow(color: .black.opacity(0.06), radius: 1, x: 0, y: 1)
         .onDrop(of: [.text], delegate: TabDropDelegate(
             paneID: pane.id,
             services: services,

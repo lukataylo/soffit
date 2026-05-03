@@ -18,6 +18,7 @@ struct MarkdownSourceEditor: NSViewRepresentable {
         let scroll = NSTextView.scrollableTextView()
         let textView = scroll.documentView as! NSTextView
         textView.delegate = context.coordinator
+        textView.textStorage?.delegate = context.coordinator
         textView.isRichText = false
         textView.isAutomaticQuoteSubstitutionEnabled = false
         textView.isAutomaticDashSubstitutionEnabled = false
@@ -31,7 +32,7 @@ struct MarkdownSourceEditor: NSViewRepresentable {
         applyBaseFont(to: textView)
         textView.string = text
         context.coordinator.textView = textView
-        context.coordinator.applyHighlighting(to: textView.textStorage)
+        context.coordinator.applyFullHighlighting(to: textView.textStorage)
         DispatchQueue.main.async { commands.textView = textView }
         return scroll
     }
@@ -44,13 +45,18 @@ struct MarkdownSourceEditor: NSViewRepresentable {
         if context.coordinator.style != style {
             context.coordinator.style = style
             applyBaseFont(to: textView)
-            context.coordinator.applyHighlighting(to: textView.textStorage)
+            context.coordinator.applyFullHighlighting(to: textView.textStorage)
         }
         if textView.string != text {
             let selected = textView.selectedRange()
             textView.string = text
-            textView.setSelectedRange(selected)
-            context.coordinator.applyHighlighting(to: textView.textStorage)
+            // Selection may now be out of bounds if `text` shrank (e.g., external
+            // edit, restored from disk). Clamp before re-applying.
+            let length = (text as NSString).length
+            let loc = min(selected.location, length)
+            let len = min(selected.length, max(0, length - loc))
+            textView.setSelectedRange(NSRange(location: loc, length: len))
+            context.coordinator.applyFullHighlighting(to: textView.textStorage)
         }
     }
 
@@ -63,25 +69,42 @@ struct MarkdownSourceEditor: NSViewRepresentable {
         }
     }
 
-    final class Coordinator: NSObject, NSTextViewDelegate {
+    final class Coordinator: NSObject, NSTextViewDelegate, NSTextStorageDelegate {
         @Binding var text: String
         weak var textView: NSTextView?
         var style: Style
         private let highlighter = MarkdownHighlighter()
+        private var lastEditedRange: NSRange?
 
         init(text: Binding<String>, style: Style) {
             self._text = text
             self.style = style
         }
 
-        func textDidChange(_ notification: Notification) {
-            guard let tv = notification.object as? NSTextView else { return }
-            text = tv.string
-            applyHighlighting(to: tv.textStorage)
+        func textStorage(_ textStorage: NSTextStorage,
+                         didProcessEditing editedMask: NSTextStorageEditActions,
+                         range editedRange: NSRange,
+                         changeInLength delta: Int) {
+            // Only interested in user-initiated character edits, not our own attribute changes.
+            guard editedMask.contains(.editedCharacters) else { return }
+            lastEditedRange = editedRange
         }
 
-        func applyHighlighting(to storage: NSTextStorage?) {
+        func textDidChange(_ notification: Notification) {
+            guard let tv = notification.object as? NSTextView,
+                  let storage = tv.textStorage else { return }
+            text = tv.string
+            if let edited = lastEditedRange {
+                lastEditedRange = nil
+                highlighter.applyIncremental(to: storage, style: style, editedRange: edited)
+            } else {
+                highlighter.apply(to: storage, style: style)
+            }
+        }
+
+        func applyFullHighlighting(to storage: NSTextStorage?) {
             guard let storage else { return }
+            lastEditedRange = nil
             highlighter.apply(to: storage, style: style)
         }
     }

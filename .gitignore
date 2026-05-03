@@ -5,3 +5,9 @@ DerivedData/
 *.xcworkspace/
 Package.resolved
 .DS_Store
+
+# Build output (Soffit.app bundle, DMG)
+build/
+
+# Intermediate icon PNG sources (commit only the compiled .icns)
+Sources/Soffit/Resources/AppIcon.iconset/

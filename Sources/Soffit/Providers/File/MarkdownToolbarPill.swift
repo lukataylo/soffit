@@ -10,12 +10,16 @@ struct MarkdownToolbarPill: View {
         HStack(spacing: 10) {
             modeSegment
             divider
-            formattingTools
-            divider
-            Text(fileName)
-                .font(.system(size: 10.5, design: .monospaced))
-                .foregroundStyle(.tertiary)
-                .lineLimit(1)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    formattingTools
+                    divider
+                    Text(fileName)
+                        .font(.system(size: 10.5, design: .monospaced))
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)

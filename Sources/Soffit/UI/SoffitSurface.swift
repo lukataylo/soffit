@@ -15,25 +15,27 @@ struct SoffitSurface: View {
     }
 
     private var tintOverlay: some View {
+        // Light tint, low opacity so the wallpaper blur shows through but cards
+        // still pop. Dark mode keeps a touch more weight so cards don't lose contrast.
         colorScheme == .dark
-            ? Color(white: 0.12).opacity(0.55)
-            : Color(white: 0.94).opacity(0.65)
+            ? Color(white: 0.10).opacity(0.30)
+            : Color(white: 0.96).opacity(0.25)
     }
 }
 
 struct WindowBlurBackground: NSViewRepresentable {
     func makeNSView(context: Context) -> NSVisualEffectView {
         let v = NSVisualEffectView()
-        v.material = .underWindowBackground
+        v.material = .headerView
         v.blendingMode = .behindWindow
-        v.state = .active
+        v.state = .followsWindowActiveState
         v.isEmphasized = false
         return v
     }
 
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-        nsView.material = .underWindowBackground
+        nsView.material = .headerView
         nsView.blendingMode = .behindWindow
-        nsView.state = .active
+        nsView.state = .followsWindowActiveState
     }
 }

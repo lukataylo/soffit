@@ -9,23 +9,21 @@ struct PanelTypePicker: View {
     @State private var title: String = ""
 
     enum Kind: String, CaseIterable, Identifiable {
-        case web, mermaid, chat
+        case web, mermaid
         var id: String { rawValue }
         var label: String {
             switch self {
             case .web: return "Web (URL / Figma / localhost)"
             case .mermaid: return "Mermaid diagram"
-            case .chat: return "Claude chat"
             }
         }
         var placeholder: String {
             switch self {
             case .web: return "https://www.figma.com/... or http://localhost:3000"
             case .mermaid: return "path/to/diagram.mmd (relative to workspace)"
-            case .chat: return "chat label (optional)"
             }
         }
-        var needsURL: Bool { self != .chat }
+        var needsURL: Bool { true }
     }
 
     var body: some View {
@@ -73,9 +71,6 @@ struct PanelTypePicker: View {
             let clean = path.hasPrefix("/") ? path : "/" + path
             source = "mermaid://\(clean)"
             defaultTitle = (path as NSString).lastPathComponent
-        case .chat:
-            source = "chat://claude"
-            defaultTitle = "Claude"
         }
         let finalTitle = title.isEmpty ? defaultTitle : title
         onChoose(source, finalTitle)

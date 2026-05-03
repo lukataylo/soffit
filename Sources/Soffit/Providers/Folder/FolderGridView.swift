@@ -3,8 +3,10 @@ import SwiftUI
 struct FolderGridView: View {
     let folderURL: URL?
     let workspaceRoot: URL?
+    @Binding var mode: FolderViewMode
     let onOpen: (FSEntry) -> Void
     let onNavigateFolder: (URL) -> Void
+    let onAddToCanvas: (FSEntry) -> Void
 
     @State private var entries: [FSEntry] = []
     @State private var sort: SortMode = .modified
@@ -22,41 +24,84 @@ struct FolderGridView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                header
-                grid
+        GeometryReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    header(width: proxy.size.width)
+                    grid
+                }
+                .padding(.horizontal, 28)
+                .padding(.top, 18)
+                .padding(.bottom, 40)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(.horizontal, 28)
-            .padding(.top, 18)
-            .padding(.bottom, 40)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onAppear { refresh() }
         .onChange(of: folderURL) { _, _ in refresh() }
         .onChange(of: sort) { _, _ in refresh() }
     }
 
-    private var header: some View {
+    @ViewBuilder
+    private func header(width: CGFloat) -> some View {
+        let compact = width < 520
         VStack(alignment: .leading, spacing: 6) {
             if let url = folderURL {
                 BreadcrumbView(url: url, workspaceRoot: workspaceRoot, onTap: onNavigateFolder)
             }
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
+            if compact {
+                // Stack vertically when there isn't room for title + pickers in a row.
                 Text(folderURL?.lastPathComponent ?? "Folder")
-                    .font(.system(size: 26, weight: .bold))
-                Text("\(entries.count) item\(entries.count == 1 ? "" : "s")")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Picker("Sort", selection: $sort) {
-                    ForEach(SortMode.allCases) { m in Text(m.label).tag(m) }
+                    .font(.system(size: 22, weight: .bold))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                HStack(spacing: 10) {
+                    Text("\(entries.count) item\(entries.count == 1 ? "" : "s")")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                    Spacer()
+                    modePicker
+                    sortPicker
                 }
-                .pickerStyle(.segmented)
-                .frame(width: 220)
-                .labelsHidden()
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text(folderURL?.lastPathComponent ?? "Folder")
+                        .font(.system(size: 26, weight: .bold))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .layoutPriority(1)
+                    Text("\(entries.count) item\(entries.count == 1 ? "" : "s")")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .fixedSize()
+                    Spacer(minLength: 8)
+                    modePicker
+                    sortPicker
+                }
             }
         }
+    }
+
+    private var modePicker: some View {
+        Picker("Mode", selection: $mode) {
+            Label("Grid", systemImage: "square.grid.2x2").tag(FolderViewMode.grid)
+            Label("Canvas", systemImage: "rectangle.3.group").tag(FolderViewMode.canvas)
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .frame(width: 130)
+        .fixedSize()
+    }
+
+    private var sortPicker: some View {
+        Picker("Sort", selection: $sort) {
+            ForEach(SortMode.allCases) { m in Text(m.label).tag(m) }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .frame(width: 180)
+        .fixedSize()
     }
 
     private var grid: some View {
@@ -67,8 +112,14 @@ struct FolderGridView: View {
         ) {
             ForEach(entries) { entry in
                 DocumentCard(entry: entry, onOpen: { onOpen(entry) })
+                    .onDrag {
+                        NSItemProvider(object: entry.url as NSURL)
+                    }
                     .contextMenu {
                         Button("Open") { onOpen(entry) }
+                        if !entry.isDirectory {
+                            Button("Add to Canvas") { onAddToCanvas(entry) }
+                        }
                         Divider()
                         Button("Reveal in Finder") {
                             NSWorkspace.shared.activateFileViewerSelecting([entry.url])
