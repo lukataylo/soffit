@@ -4,6 +4,9 @@ import Foundation
 @MainActor
 final class MarkdownActiveState: ObservableObject {
     @Published var mode: MarkdownPanelMode = .preview
+    @Published var spellCheckEnabled: Bool = UserDefaults.standard.bool(forKey: "soffit.spellCheck") {
+        didSet { UserDefaults.standard.set(spellCheckEnabled, forKey: "soffit.spellCheck") }
+    }
     let commands = MarkdownEditorCommands()
     let panelID: PanelID
 

@@ -66,6 +66,7 @@ struct TabPillView: View {
         case "https", "http", "web": return "globe"
         case "chat": return "bubble.left.and.bubble.right.fill"
         case "terminal": return "terminal.fill"
+        case "sketch": return "pencil.and.scribble"
         default: return "doc"
         }
     }
@@ -78,6 +79,7 @@ struct TabPillView: View {
         case "https", "http", "web": return Color(red: 0.35, green: 0.65, blue: 0.55)
         case "chat": return Color(red: 0.85, green: 0.42, blue: 0.55)
         case "terminal": return Color(red: 0.45, green: 0.78, blue: 0.62)
+        case "sketch": return Color(red: 0.92, green: 0.55, blue: 0.45)
         default: return .secondary
         }
     }

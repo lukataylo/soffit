@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="katex.min.css">
+<script src="katex.min.js"></script>
+<script src="marked.min.js"></script>
+<style>
+  body {
+    margin: 0;
+    padding: 28px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #1d1d1f;
+    background: transparent;
+  }
+  h1 { font-size: 1.85em; font-weight: 700; margin: 0.4em 0 0.5em; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 0.2em; }
+  h2 { font-size: 1.45em; font-weight: 700; margin: 0.6em 0 0.4em; }
+  h3 { font-size: 1.2em; font-weight: 600; margin: 0.6em 0 0.3em; }
+  h4, h5, h6 { font-weight: 600; margin: 0.5em 0 0.2em; }
+  p { margin: 0.5em 0; }
+  code { font-family: "SF Mono", ui-monospace, monospace; font-size: 0.9em; background: rgba(0,0,0,0.06); padding: 0 4px; border-radius: 3px; }
+  pre code { display: block; padding: 12px 14px; border-radius: 6px; line-height: 1.4; overflow-x: auto; }
+  pre { background: rgba(0,0,0,0.06); border-radius: 6px; }
+  blockquote { border-left: 3px solid rgba(0,0,0,0.18); margin: 0.6em 0; padding: 0.05em 14px; color: rgba(0,0,0,0.7); }
+  table { border-collapse: collapse; margin: 0.8em 0; }
+  th, td { border: 1px solid rgba(0,0,0,0.18); padding: 6px 10px; }
+  th { background: rgba(0,0,0,0.04); font-weight: 600; }
+  ul, ol { padding-left: 1.6em; }
+  li { margin: 0.2em 0; }
+  a { color: #007aff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  hr { border: none; border-top: 1px solid rgba(0,0,0,0.10); margin: 1em 0; }
+  img { max-width: 100%; border-radius: 4px; }
+  .katex-display { margin: 0.7em 0; overflow-x: auto; overflow-y: hidden; }
+  @media (prefers-color-scheme: dark) {
+    body { color: #f5f5f7; }
+    code { background: rgba(255,255,255,0.10); }
+    pre { background: rgba(255,255,255,0.06); }
+    blockquote { border-color: rgba(255,255,255,0.18); color: rgba(255,255,255,0.7); }
+    th, td { border-color: rgba(255,255,255,0.18); }
+    th { background: rgba(255,255,255,0.06); }
+    a { color: #4ea8ff; }
+  }
+</style>
+</head>
+<body>
+<div id="content"></div>
+<script>
+  // Strategy: replace $$…$$ and $…$ with placeholders, run marked over the
+  // text, then swap placeholders for KaTeX-rendered HTML. This avoids marked
+  // mangling the math.
+  function render(md) {
+    const blocks = [];
+    const inlines = [];
+    md = md.replace(/\$\$([\s\S]+?)\$\$/g, (_, expr) => {
+      blocks.push(expr);
+      return `MATHBLOCK${blocks.length - 1}`;
+    });
+    md = md.replace(/(?<![\\])\$([^\$\n]+?)\$/g, (_, expr) => {
+      inlines.push(expr);
+      return `MATHINLINE${inlines.length - 1}`;
+    });
+    let html = marked.parse(md);
+    html = html.replace(/MATHBLOCK(\d+)/g, (_, i) => {
+      try { return katex.renderToString(blocks[+i].trim(), { displayMode: true, throwOnError: false }); }
+      catch (e) { return `<code>${escape(blocks[+i])}</code>`; }
+    });
+    html = html.replace(/MATHINLINE(\d+)/g, (_, i) => {
+      try { return katex.renderToString(inlines[+i].trim(), { displayMode: false, throwOnError: false }); }
+      catch (e) { return `<code>${escape(inlines[+i])}</code>`; }
+    });
+    return html;
+  }
+
+  function escape(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  window.addEventListener('message', (event) => {
+    const md = (event.data && event.data.source) || '';
+    document.getElementById('content').innerHTML = render(md);
+  });
+</script>
+</body>
+</html>

@@ -25,10 +25,47 @@ struct RootView: View {
                 OnboardingView()
                     .transition(.opacity)
             }
+
+            if let mode = services.paletteMode {
+                paletteOverlay(mode: mode)
+            }
+
+            if services.findReplaceVisible {
+                findReplaceOverlay
+            }
         }
         .animation(.easeInOut(duration: 0.15), value: services.needsAPIKey)
         .animation(.easeInOut(duration: 0.15), value: services.needsWorkspace)
         .animation(.easeInOut(duration: 0.22), value: sidebarCollapsed)
+        .animation(.easeOut(duration: 0.12), value: services.paletteMode)
+        .animation(.easeOut(duration: 0.12), value: services.findReplaceVisible)
+    }
+
+    private func paletteOverlay(mode: SearchPaletteMode) -> some View {
+        ZStack(alignment: .top) {
+            Color.black.opacity(0.18)
+                .ignoresSafeArea()
+                .onTapGesture { services.paletteMode = nil }
+            SearchPalette(mode: mode,
+                          onPick: { url in
+                              services.paletteMode = nil
+                              services.openFile(url, mode: .preview)
+                          },
+                          onClose: { services.paletteMode = nil })
+                .padding(.top, 100)
+                .transition(.move(edge: .top).combined(with: .opacity))
+        }
+    }
+
+    private var findReplaceOverlay: some View {
+        ZStack(alignment: .top) {
+            Color.black.opacity(0.18)
+                .ignoresSafeArea()
+                .onTapGesture { services.findReplaceVisible = false }
+            FindReplaceSheet(onClose: { services.findReplaceVisible = false })
+                .padding(.top, 100)
+                .transition(.move(edge: .top).combined(with: .opacity))
+        }
     }
 
     private var titleBar: some View {

@@ -6,6 +6,9 @@ struct SoffitCommands: Commands {
     var body: some Commands {
         CommandGroup(replacing: .appInfo) {
             Button("About Soffit") { AboutWindowController.show() }
+            Button("Check for Updates…") {
+                NSWorkspace.shared.open(URL(string: "https://github.com/lukataylo/soffit/releases/latest")!)
+            }
         }
 
         CommandGroup(after: .newItem) {
@@ -13,6 +16,28 @@ struct SoffitCommands: Commands {
                 .keyboardShortcut("o", modifiers: [.command])
             Button("New Terminal") { services.openTerminal() }
                 .keyboardShortcut("t", modifiers: [.command, .shift])
+            Divider()
+            Button("Today's Daily Note") { services.openDailyNote() }
+                .keyboardShortcut("d", modifiers: [.command, .shift])
+            Button("New Sketch") { services.openSketch() }
+        }
+
+        CommandGroup(after: .pasteboard) {
+            Divider()
+            Button("Quick Open…") {
+                services.paletteMode = .fileName
+            }
+            .keyboardShortcut("p", modifiers: [.command])
+
+            Button("Search in Workspace…") {
+                services.paletteMode = .content
+            }
+            .keyboardShortcut("f", modifiers: [.command, .shift])
+
+            Button("Find / Replace in Workspace…") {
+                services.findReplaceVisible = true
+            }
+            .keyboardShortcut("f", modifiers: [.command, .option])
         }
 
         CommandMenu("Panes") {

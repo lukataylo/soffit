@@ -7,12 +7,18 @@ final class AppServices: ObservableObject {
     @Published var layout: LayoutStore
     @Published var needsAPIKey: Bool = false
     @Published var needsWorkspace: Bool = false
+    @Published var paletteMode: SearchPaletteMode? = nil
+    @Published var findReplaceVisible: Bool = false
 
     let registry: ProviderRegistry
     let keychain: KeychainStore
     let persistence: LayoutPersistence
     let notifications = PanelNotificationBus()
     let recents = RecentFilesStore()
+    let index = WorkspaceIndex()
+    let snippets = SnippetsStore()
+    let git = GitStatusService()
+    let themes = ThemesLoader()
 
     private var cancellables: Set<AnyCancellable> = []
     private var trackedPanelIDs: Set<PanelID> = []
@@ -34,6 +40,7 @@ final class AppServices: ObservableObject {
         registry.register(FolderProvider())
         registry.register(TerminalProvider())
         registry.register(ChatProvider(keychain: keychain))
+        registry.register(SketchProvider())
 
         // Re-publish nested LayoutStore changes so @EnvironmentObject consumers
         // of AppServices re-render when layout.tree or layout.focusedPane mutates.
@@ -92,6 +99,22 @@ final class AppServices: ObservableObject {
             let panel = Panel(source: FolderURL.makeSource(for: url), title: url.lastPathComponent)
             layout.addTab(panel)
         }
+        // Build the workspace index in the background so search/wikilinks/tags
+        // are ready as soon as the file tree finishes its first render.
+        Task { await index.open(root: url) }
+        git.bind(to: url)
+        // FSEvents on the workspace store also nudge the index. WorkspaceStore
+        // currently only emits a coarse "something changed" signal, so we
+        // re-walk markdown files on every notification — it's bounded by the
+        // 0.5s FSEventStream latency.
+        store.objectWillChange
+            .debounce(for: .milliseconds(400), scheduler: RunLoop.main)
+            .sink { [weak self] in
+                guard let self else { return }
+                Task { await self.index.refreshAll() }
+                self.git.notifyChange()
+            }
+            .store(in: &cancellables)
     }
 
     func saveAPIKey(_ key: String) {
@@ -115,6 +138,38 @@ final class AppServices: ObservableObject {
     func openTerminal(in folder: URL? = nil) {
         let dir = folder ?? workspace?.root ?? FileManager.default.homeDirectoryForCurrentUser
         let panel = Panel(source: TerminalSource.makeSource(for: dir), title: "Terminal")
+        layout.addTab(panel)
+    }
+
+    /// Open today's daily note (creates it if needed under daily/YYYY-MM-DD.md).
+    /// Optionally seeded from .soffit/templates/daily.md.
+    func openDailyNote() {
+        guard let root = workspace?.root else { return }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let stamp = formatter.string(from: Date())
+        let dailyDir = root.appendingPathComponent("daily", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dailyDir, withIntermediateDirectories: true)
+        let target = dailyDir.appendingPathComponent("\(stamp).md")
+        if !FileManager.default.fileExists(atPath: target.path) {
+            let templatePath = root.appendingPathComponent(".soffit/templates/daily.md")
+            let body: String
+            if let template = try? String(contentsOf: templatePath, encoding: .utf8) {
+                let prettyDate = DateFormatter.localizedString(from: Date(), dateStyle: .full, timeStyle: .none)
+                body = template
+                    .replacingOccurrences(of: "{{date}}", with: stamp)
+                    .replacingOccurrences(of: "{{long_date}}", with: prettyDate)
+            } else {
+                body = "# \(stamp)\n\n"
+            }
+            try? body.write(to: target, atomically: true, encoding: .utf8)
+        }
+        openFile(target, mode: .split)
+    }
+
+    /// Open a fresh sketch panel for ad-hoc drawing.
+    func openSketch() {
+        let panel = Panel(source: "sketch://new", title: "Sketch")
         layout.addTab(panel)
     }
 

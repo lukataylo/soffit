@@ -77,9 +77,84 @@ struct FileTreeView: View {
             sectionRow(icon: "terminal.fill", label: "New Terminal", tint: Color(red: 0.35, green: 0.65, blue: 0.55)) {
                 services.openTerminal()
             }
+            sectionRow(icon: "calendar", label: "Today's Daily Note", tint: Color(red: 0.50, green: 0.65, blue: 0.95)) {
+                services.openDailyNote()
+            }
+            tagsSection
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
+    }
+
+    @State private var tagsExpanded: Bool = false
+
+    private var tagsSection: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            HStack(spacing: 9) {
+                Image(systemName: "number")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color(red: 0.85, green: 0.42, blue: 0.55))
+                    .frame(width: 18)
+                Text("Tags")
+                    .font(.system(size: 12.5, weight: .medium))
+                    .foregroundStyle(.primary)
+                Spacer()
+                if !services.index.allTags.isEmpty {
+                    Text("\(services.index.allTags.count)")
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundStyle(.tertiary)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.tertiary)
+                        .rotationEffect(.degrees(tagsExpanded ? 90 : 0))
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .contentShape(Rectangle())
+            .onTapGesture { tagsExpanded.toggle() }
+
+            if tagsExpanded {
+                if services.index.allTags.isEmpty {
+                    Text("No tags yet")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.tertiary)
+                        .padding(.leading, 35)
+                        .padding(.vertical, 4)
+                } else {
+                    ForEach(services.index.allTags.sorted { $0.value > $1.value }, id: \.key) { tag, count in
+                        tagRow(tag: tag, count: count)
+                    }
+                }
+            }
+        }
+    }
+
+    private func tagRow(tag: String, count: Int) -> some View {
+        HStack(spacing: 6) {
+            Text("#\(tag)")
+                .font(.system(size: 11.5, weight: .medium))
+                .foregroundStyle(Color(red: 0.85, green: 0.42, blue: 0.55))
+            Text("\(count)")
+                .font(.system(size: 10, design: .monospaced))
+                .foregroundStyle(.tertiary)
+            Spacer()
+        }
+        .padding(.leading, 35)
+        .padding(.trailing, 8)
+        .padding(.vertical, 3)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            // Open the first matching file as a quick way to dive in.
+            if let first = services.index.filesWithTag(tag).first {
+                services.openFile(first.url, mode: .preview)
+            }
+        }
+        .contextMenu {
+            ForEach(services.index.filesWithTag(tag), id: \.url) { entry in
+                Button(entry.title) { services.openFile(entry.url, mode: .preview) }
+            }
+        }
     }
 
     private var recentSection: some View {
@@ -228,6 +303,7 @@ struct FileTreeView: View {
                         .foregroundStyle(.primary.opacity(0.85))
                         .lineLimit(1)
                     Spacer()
+                    gitDot(for: entry.url)
                 }
                 .padding(.leading, CGFloat(depth) * 12 + 20)
                 .padding(.trailing, 8)
@@ -252,6 +328,39 @@ struct FileTreeView: View {
                     }
                 }
             )
+        }
+    }
+
+    @ViewBuilder
+    private func gitDot(for url: URL) -> some View {
+        let status = services.git.status(for: url)
+        if status != .clean {
+            Circle()
+                .fill(gitColor(status))
+                .frame(width: 6, height: 6)
+                .help(gitTooltip(status))
+        }
+    }
+
+    private func gitColor(_ s: GitStatusService.Status) -> Color {
+        switch s {
+        case .modified:   return Color(red: 0.95, green: 0.65, blue: 0.20)
+        case .untracked:  return Color(red: 0.40, green: 0.75, blue: 0.45)
+        case .staged:     return Color(red: 0.40, green: 0.65, blue: 0.95)
+        case .conflicted: return Color(red: 0.90, green: 0.30, blue: 0.30)
+        case .ignored:    return Color.secondary.opacity(0.4)
+        case .clean:      return .clear
+        }
+    }
+
+    private func gitTooltip(_ s: GitStatusService.Status) -> String {
+        switch s {
+        case .modified:   return "Modified"
+        case .untracked:  return "Untracked"
+        case .staged:     return "Staged"
+        case .conflicted: return "Conflicted"
+        case .ignored:    return "Ignored"
+        case .clean:      return ""
         }
     }
 

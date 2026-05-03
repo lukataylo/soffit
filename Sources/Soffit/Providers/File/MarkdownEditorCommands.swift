@@ -40,6 +40,23 @@ final class MarkdownEditorCommands: ObservableObject {
         tv.insertText(text, replacementRange: tv.selectedRange())
     }
 
+    /// Scroll the editor to the given line (0-indexed) and place the caret there.
+    func scrollTo(line: Int) {
+        guard let tv = textView, let storage = tv.textStorage else { return }
+        let s = storage.string as NSString
+        var charIndex = 0
+        var current = 0
+        while current < line, charIndex < s.length {
+            let range = s.lineRange(for: NSRange(location: charIndex, length: 0))
+            charIndex = range.location + range.length
+            current += 1
+        }
+        let target = NSRange(location: min(charIndex, s.length), length: 0)
+        tv.setSelectedRange(target)
+        tv.scrollRangeToVisible(target)
+        tv.window?.makeFirstResponder(tv)
+    }
+
     func insertTable(rows: Int, cols: Int) {
         guard rows > 0, cols > 0 else { return }
         let header = "| " + Array(1...cols).map { "Col \($0)" }.joined(separator: " | ") + " |"
