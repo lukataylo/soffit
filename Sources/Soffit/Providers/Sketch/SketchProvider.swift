@@ -9,15 +9,20 @@ struct SketchProvider: PanelProvider {
     }
 }
 
-struct SketchState: Codable, Hashable {
+struct SketchState: Codable, Equatable {
     var strokes: [Stroke] = []
 
-    struct Stroke: Codable, Hashable {
+    // Equatable only — `[CGPoint]` synthesises Equatable but not Hashable
+    // on Swift 5.10 (CI's Xcode 15.4 toolchain). Hashable isn't actually
+    // needed on Stroke anywhere.
+    struct Stroke: Codable, Equatable {
         var color: ColorRGB
         var width: CGFloat
         var points: [CGPoint]
     }
 
+    // ColorRGB stays Hashable: it's used as `ForEach(id: \.self)` in the
+    // colour palette below.
     struct ColorRGB: Codable, Hashable {
         var r: Double
         var g: Double

@@ -23,6 +23,7 @@ struct WebViewRepresentable: NSViewRepresentable {
         context.coordinator.applySpec(spec, in: nsView)
     }
 
+    @MainActor
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         let model: WebPanelModel
         private var lastKey: String?
@@ -62,24 +63,27 @@ struct WebViewRepresentable: NSViewRepresentable {
                 .replacingOccurrences(of: ">", with: "&gt;")
         }
 
-        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            Task { @MainActor in
+        // WKNavigationDelegate methods are called on the main thread. Marking
+        // the Coordinator @MainActor lets us touch `model.pendingDiagram` and
+        // friends synchronously without `Task { @MainActor in … }` wrappers.
+        nonisolated func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            MainActor.assumeIsolated {
                 model.canGoBack = webView.canGoBack
                 model.canGoForward = webView.canGoForward
                 model.currentURLDisplay = webView.url?.absoluteString ?? ""
-            }
-            if let diagram = model.pendingDiagram {
-                let escaped = diagram
-                    .replacingOccurrences(of: "\\", with: "\\\\")
-                    .replacingOccurrences(of: "`", with: "\\`")
-                    .replacingOccurrences(of: "$", with: "\\$")
-                let js = "window.postMessage({ source: `\(escaped)` }, '*');"
-                webView.evaluateJavaScript(js, completionHandler: nil)
+                if let diagram = model.pendingDiagram {
+                    let escaped = diagram
+                        .replacingOccurrences(of: "\\", with: "\\\\")
+                        .replacingOccurrences(of: "`", with: "\\`")
+                        .replacingOccurrences(of: "$", with: "\\$")
+                    let js = "window.postMessage({ source: `\(escaped)` }, '*');"
+                    webView.evaluateJavaScript(js, completionHandler: nil)
+                }
             }
         }
 
-        func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-            Task { @MainActor in
+        nonisolated func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+            MainActor.assumeIsolated {
                 model.currentURLDisplay = webView.url?.absoluteString ?? ""
             }
         }
