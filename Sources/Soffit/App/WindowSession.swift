@@ -29,6 +29,14 @@ final class WindowSession: ObservableObject {
         Self.sessionCount += 1
         self.isPrimary = (Self.sessionCount == 1)
         self.layout = LayoutStore(tree: .empty)
+
+        // SwiftUI's @EnvironmentObject only observes the immediate ObservableObject.
+        // Without this re-publish, mutations to `layout.tree` (which keep the same
+        // LayoutStore reference) wouldn't trigger WindowSession.objectWillChange,
+        // so PaneView / LayoutHostView would never re-render after addTab/closeTab.
+        layout.objectWillChange
+            .sink { [weak self] in self?.objectWillChange.send() }
+            .store(in: &cancellables)
     }
 
     /// Wire this session to AppServices. Called from RootView.onAppear, since
